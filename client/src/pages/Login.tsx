@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Sparkles, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
 
@@ -20,18 +20,6 @@ export const Login: React.FC = () => {
       navigate('/dashboard');
     } else {
       toast('Invalid email or password', 'error');
-    }
-  };
-
-  const handleDemoLogin = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('password123');
-    const success = await login(demoEmail, 'password123');
-    if (success) {
-      toast(`Signed in as ${demoEmail}`);
-      navigate('/dashboard');
-    } else {
-      toast('Failed to sign in with demo credentials. Did you run npm run seed?', 'error');
     }
   };
 
@@ -86,52 +74,6 @@ export const Login: React.FC = () => {
               <span>Sign In</span>
             </button>
           </form>
-
-          {/* Quick 1-Click Evaluation Login Buttons */}
-          <div className="mt-6 pt-6 border-t border-slate-100">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-500" />
-              <span>Viva / Demo Fast-Fill:</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('owner@acme.com')}
-                className="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-semibold text-left transition-colors"
-              >
-                👑 Owner (Acme)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('admin@acme.com')}
-                className="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-900 font-semibold text-left transition-colors"
-              >
-                🛡️ Admin (Acme)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('member@acme.com')}
-                className="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-semibold text-left transition-colors"
-              >
-                💻 Member (Acme)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('guest@acme.com')}
-                className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-semibold text-left transition-colors"
-              >
-                👁️ Guest (Read-Only)
-              </button>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleDemoLogin('hank@globex.com')}
-              className="mt-2 w-full p-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 font-semibold text-center text-[11px] transition-colors"
-            >
-              🏢 Globex Corp Tenant (Hank Scorpio)
-            </button>
-          </div>
 
           <div className="mt-6 text-center text-xs text-slate-500">
             Don't have an account?{' '}

@@ -8,6 +8,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
+    "db:clear": "node src/scripts/clear.js",
     "test:isolation": "node src/scripts/isolationTest.js"
   },
   "dependencies": {

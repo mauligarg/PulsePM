@@ -3,20 +3,11 @@ const app = require('./app');
 const { connectDB } = require('./config/db');
 const setupSockets = require('./sockets');
 const env = require('./config/env');
-const User = require('./models/User');
-const { seedData } = require('./scripts/seed');
 
 const startServer = async () => {
   try {
     // Connect to database
     await connectDB();
-
-    // Auto-seed if running fresh database
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('⚡ Initial startup: Populating database with evaluation demo data...');
-      await seedData();
-    }
 
     // Create HTTP server
     const server = http.createServer(app);

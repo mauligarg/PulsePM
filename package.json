@@ -8,6 +8,7 @@
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",
     "seed": "npm run seed --prefix server",
+    "db:clear": "npm run db:clear --prefix server",
     "test:isolation": "npm run test:isolation --prefix server",
     "install:all": "npm install && npm install --prefix server && npm install --prefix client"
   },
