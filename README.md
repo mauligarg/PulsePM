@@ -85,7 +85,12 @@ npm run dev
 ```
 * Starts the Express backend on `http://localhost:5000`
 * Starts the React Vite frontend on `http://localhost:5173`
-* Auto-seeds the database on initial boot if empty
+
+### Database Utility Scripts
+```bash
+npm run seed       # Seeds realistic demo data (2 workspaces, 4 roles, 3 projects, 25+ tasks)
+npm run db:clear   # Completely wipes all data, resetting database to pristine empty state
+```
 
 ---
 
