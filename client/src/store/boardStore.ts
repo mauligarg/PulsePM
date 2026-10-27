@@ -156,9 +156,17 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const targetProjId = typeof createdTask.projectId === 'object' ? createdTask.projectId._id : createdTask.projectId;
 
     if (currentProj && currentProj._id === targetProjId) {
-      set((state) => ({
-        tasks: [...state.tasks, createdTask],
-      }));
+      set((state) => {
+        const exists = state.tasks.some((t) => t._id === createdTask._id);
+        if (exists) {
+          return {
+            tasks: state.tasks.map((t) => (t._id === createdTask._id ? createdTask : t)),
+          };
+        }
+        return {
+          tasks: [...state.tasks, createdTask],
+        };
+      });
     }
   },
 
