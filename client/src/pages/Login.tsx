@@ -19,7 +19,8 @@ export const Login: React.FC = () => {
       toast('Welcome back!');
       navigate('/dashboard');
     } else {
-      toast('Invalid email or password', 'error');
+      const errorMsg = useAuthStore.getState().error || 'Invalid email or password';
+      toast(errorMsg, 'error');
     }
   };
 

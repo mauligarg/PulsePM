@@ -25,7 +25,8 @@ export const Register: React.FC = () => {
       toast('Registration successful! Create your first workspace.');
       navigate('/workspaces');
     } else {
-      toast('Registration failed. Email might already be taken.', 'error');
+      const errorMsg = useAuthStore.getState().error || 'Registration failed';
+      toast(errorMsg, 'error');
     }
   };
 
