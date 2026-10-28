@@ -163,7 +163,7 @@ export const Dashboard: React.FC = () => {
                     <span className="text-[10px] text-slate-400 font-medium">
                       Project:{' '}
                       <strong className="text-slate-600">
-                        {typeof t.projectId === 'object' ? t.projectId.key : 'PRJ'}
+                        {t.projectId && typeof t.projectId === 'object' ? t.projectId.key : 'PRJ'}
                       </strong>
                     </span>
                   </div>

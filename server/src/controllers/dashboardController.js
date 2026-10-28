@@ -62,7 +62,7 @@ const getDashboardSummary = async (req, res, next) => {
 
     // Overdue tasks (due date in the past and status is not 'done')
     const now = new Date();
-    const overdueTasks = await Task.find({
+    const overdueTasksRaw = await Task.find({
       dueDate: { $lt: now },
       status: { $ne: 'done' }
     })
@@ -71,19 +71,35 @@ const getDashboardSummary = async (req, res, next) => {
       .sort({ dueDate: 1 })
       .limit(5);
 
+    const overdueTasks = overdueTasksRaw.map((t) => {
+      const obj = t.toObject ? t.toObject() : { ...t };
+      if (!obj.projectId) {
+        obj.projectId = { name: 'General', key: 'PRJ' };
+      }
+      return obj;
+    });
+
     const overdueCount = await Task.countDocuments({
       dueDate: { $lt: now },
       status: { $ne: 'done' }
     });
 
     // My open tasks
-    const myOpenTasks = await Task.find({
+    const myOpenTasksRaw = await Task.find({
       assigneeId: userId,
       status: { $ne: 'done' }
     })
       .populate('projectId', 'name key')
       .sort({ dueDate: 1, createdAt: -1 })
       .limit(6);
+
+    const myOpenTasks = myOpenTasksRaw.map((t) => {
+      const obj = t.toObject ? t.toObject() : { ...t };
+      if (!obj.projectId) {
+        obj.projectId = { name: 'General', key: 'PRJ' };
+      }
+      return obj;
+    });
 
     const myOpenTasksCount = await Task.countDocuments({
       assigneeId: userId,

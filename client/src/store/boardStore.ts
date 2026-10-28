@@ -153,7 +153,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   applyTaskCreated: (createdTask) => {
     const currentProj = get().currentProject;
-    const targetProjId = typeof createdTask.projectId === 'object' ? createdTask.projectId._id : createdTask.projectId;
+    const targetProjId = createdTask.projectId && typeof createdTask.projectId === 'object' ? createdTask.projectId._id : createdTask.projectId;
 
     if (currentProj && currentProj._id === targetProjId) {
       set((state) => {

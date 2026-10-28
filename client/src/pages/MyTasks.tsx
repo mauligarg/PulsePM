@@ -75,14 +75,14 @@ export const MyTasks: React.FC = () => {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                      {typeof task.projectId === 'object' ? task.projectId.key : 'PRJ'}
+                      {task.projectId && typeof task.projectId === 'object' ? task.projectId.key : 'PRJ'}
                     </span>
                     <div className="truncate">
                       <h4 className="text-xs font-semibold text-slate-900 group-hover:text-brand-600 transition-colors truncate">
                         {task.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
-                        <span>Project: {typeof task.projectId === 'object' ? task.projectId.name : 'Unknown'}</span>
+                        <span>Project: {task.projectId && typeof task.projectId === 'object' ? task.projectId.name : 'Unknown'}</span>
                       </div>
                     </div>
                   </div>

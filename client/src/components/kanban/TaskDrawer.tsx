@@ -125,7 +125,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
     if (!newSubtaskTitle.trim() || !task || isGuest) return;
 
     try {
-      const projId = typeof task.projectId === 'object' ? task.projectId._id : task.projectId;
+      const projId = task.projectId && typeof task.projectId === 'object' ? task.projectId._id : task.projectId;
       const res = await taskApi.create({
         projectId: projId,
         title: newSubtaskTitle.trim(),
@@ -180,7 +180,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
         <div className="p-4 px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="font-semibold text-brand-600 uppercase tracking-wider">
-              {typeof task?.projectId === 'object' ? task.projectId.key : 'TASK'}
+              {task?.projectId && typeof task.projectId === 'object' ? task.projectId.key : 'TASK'}
             </span>
             <span>/</span>
             <span>Task Details</span>
