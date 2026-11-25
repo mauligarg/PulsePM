@@ -16,5 +16,13 @@ module.exports = {
     USER: process.env.SMTP_USER || '',
     PASS: process.env.SMTP_PASS || '',
     FROM: process.env.SMTP_FROM || 'no-reply@saas-pm.local'
-  }
+  },
+  REDIS_URL: process.env.REDIS_URL || '',
+  CLOUDINARY: {
+    CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+    API_KEY: process.env.CLOUDINARY_API_KEY || '',
+    API_SECRET: process.env.CLOUDINARY_API_SECRET || ''
+  },
+  SENTRY_DSN: process.env.SENTRY_DSN || '',
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info'
 };

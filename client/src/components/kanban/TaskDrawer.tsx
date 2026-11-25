@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   Trash2,
-  Calendar,
   Clock,
-  User,
-  Tag,
   Send,
   MessageSquare,
   CheckCircle2,
   Circle,
   Plus,
   Loader2,
-  AlertCircle,
+  Paperclip,
+  Download,
+  History,
 } from 'lucide-react';
-import { Task, Comment, Member, TaskStatus, TaskPriority } from '../../types';
+import { Task, Comment, Member, TaskStatus, TaskPriority, TimeLog, Activity } from '../../types';
 import { taskApi } from '../../api/tasks';
+import { timeLogApi } from '../../api/timelogs';
+import { apiClient } from '../../api/client';
 import { workspaceApi } from '../../api/workspaces';
 import { useAuthStore } from '../../store/authStore';
 import { useBoardStore } from '../../store/boardStore';
@@ -45,13 +46,21 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [assigneeId, setAssigneeId] = useState('');
   const [dueDate, setDueDate] = useState('');
-  const [estimateHours, setEstimateHours] = useState('0');
+  const [, setEstimateHours] = useState('0');
 
-  // Subtask & Comment states
+  // Subtask, Comment, Attachment, TimeLog & History states
+  const [activeTab, setActiveTab] = useState<'details' | 'timelogs' | 'history'>('details');
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [newComment, setNewComment] = useState('');
   const [isSendingComment, setIsSendingComment] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
+  const [totalLoggedHours, setTotalLoggedHours] = useState(0);
+  const [logHours, setLogHours] = useState('1');
+  const [logDate, setLogDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [logNote, setLogNote] = useState('');
+  const [taskHistory, setTaskHistory] = useState<Activity[]>([]);
 
   const isGuest = role === 'guest';
   const canDelete = role === 'owner' || role === 'admin';
@@ -82,6 +91,20 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
     if (activeWorkspace?._id) {
       workspaceApi.getMembers(activeWorkspace._id).then((res) => setMembers(res.data));
     }
+
+    timeLogApi
+      .listByTask(taskId)
+      .then((res) => {
+        setTimeLogs(res.data.logs);
+        setTotalLoggedHours(res.data.totalHours);
+      })
+      .catch(() => {});
+
+    (apiClient.get('/activity', { params: { entityId: taskId, limit: 30 } }) as Promise<any>)
+      .then((res) => {
+        setTaskHistory(res.data?.activities || []);
+      })
+      .catch(() => {});
   }, [taskId, isOpen, activeWorkspace?._id]);
 
   if (!isOpen) return null;
@@ -160,6 +183,70 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
     }
   };
 
+  const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || isGuest) return;
+    try {
+      setIsUploading(true);
+      const res = await taskApi.uploadAttachment(taskId, file);
+      setTask((prev) =>
+        prev ? { ...prev, attachments: [...(prev.attachments || []), res.data] } : prev
+      );
+      toast('Attachment uploaded');
+    } catch (err: any) {
+      toast(err.message || 'Failed to upload attachment', 'error');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      await taskApi.deleteAttachment(taskId, attachmentId);
+      setTask((prev) =>
+        prev
+          ? {
+              ...prev,
+              attachments: (prev.attachments || []).filter((a) => a._id !== attachmentId),
+            }
+          : prev
+      );
+      toast('Attachment removed');
+    } catch (err: any) {
+      toast(err.message || 'Failed to delete attachment', 'error');
+    }
+  };
+
+  const handleAddTimeLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!logHours || Number(logHours) <= 0 || isGuest) return;
+    try {
+      const res = await timeLogApi.createOnTask(taskId, {
+        hours: Number(logHours),
+        date: logDate,
+        note: logNote.trim(),
+      });
+      setTimeLogs((prev) => [res.data, ...prev]);
+      setTotalLoggedHours((prev) => Math.round((prev + Number(logHours)) * 100) / 100);
+      setLogNote('');
+      toast('Time logged');
+    } catch (err: any) {
+      toast(err.message || 'Failed to log time', 'error');
+    }
+  };
+
+  const handleDeleteTimeLog = async (logId: string, hours: number) => {
+    try {
+      await timeLogApi.delete(logId);
+      setTimeLogs((prev) => prev.filter((l) => l._id !== logId));
+      setTotalLoggedHours((prev) => Math.max(0, Math.round((prev - hours) * 100) / 100));
+      toast('Time log deleted');
+    } catch (err: any) {
+      toast(err.message || 'Failed to delete time log', 'error');
+    }
+  };
+
   const handleDeleteTask = async () => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
 
@@ -210,10 +297,159 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
           </div>
         </div>
 
+        {/* Drawer Tabs */}
+        <div className="px-6 border-b border-slate-200 flex items-center gap-4 bg-white text-xs font-semibold">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`py-2.5 border-b-2 transition-colors ${
+              activeTab === 'details'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            Details &amp; Comments
+          </button>
+          <button
+            onClick={() => setActiveTab('timelogs')}
+            className={`py-2.5 border-b-2 flex items-center gap-1.5 transition-colors ${
+              activeTab === 'timelogs'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            Time Logs ({totalLoggedHours}h)
+          </button>
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`py-2.5 border-b-2 flex items-center gap-1.5 transition-colors ${
+              activeTab === 'history'
+                ? 'border-brand-600 text-brand-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            History ({taskHistory.length})
+          </button>
+        </div>
+
         {/* Content Body */}
         {isLoading || !task ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
+          </div>
+        ) : activeTab === 'timelogs' ? (
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-slate-500">Total Logged vs Estimate</div>
+                <div className="text-lg font-bold text-slate-900">
+                  {totalLoggedHours}h <span className="text-xs font-normal text-slate-500">/ {task.estimateHours || 0}h est.</span>
+                </div>
+              </div>
+              <Clock className="w-6 h-6 text-brand-600" />
+            </div>
+
+            {!isGuest && (
+              <form onSubmit={handleAddTimeLog} className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
+                <h5 className="text-xs font-bold text-slate-800">Log Time</h5>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 block mb-1">Hours</label>
+                    <input
+                      type="number"
+                      step="0.25"
+                      min="0.1"
+                      max="24"
+                      required
+                      value={logHours}
+                      onChange={(e) => setLogHours(e.target.value)}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 block mb-1">Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={logDate}
+                      onChange={(e) => setLogDate(e.target.value)}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+                <input
+                  type="text"
+                  value={logNote}
+                  onChange={(e) => setLogNote(e.target.value)}
+                  placeholder="What did you work on?"
+                  className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-lg"
+                >
+                  Add Time Log
+                </button>
+              </form>
+            )}
+
+            <div className="space-y-2">
+              {timeLogs.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-6">No time logged on this task yet.</p>
+              ) : (
+                timeLogs.map((log) => {
+                  const canDel = canDelete || log.userId?._id === user?._id;
+                  return (
+                    <div key={log._id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
+                      <div>
+                        <div className="font-semibold text-slate-900">
+                          {log.userId?.name || 'Member'} · <span className="text-brand-600">{log.hours}h</span>
+                        </div>
+                        {log.note && <p className="text-slate-600 mt-0.5">{log.note}</p>}
+                        <span className="text-[10px] text-slate-400">{new Date(log.date).toLocaleDateString()}</span>
+                      </div>
+                      {canDel && (
+                        <button
+                          onClick={() => handleDeleteTimeLog(log._id, log.hours)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        ) : activeTab === 'history' ? (
+          <div className="flex-1 overflow-y-auto p-6 space-y-3">
+            {taskHistory.length === 0 ? (
+              <p className="text-xs text-slate-400 italic text-center py-8">No audit history recorded for this task yet.</p>
+            ) : (
+              taskHistory.map((item) => (
+                <div key={item._id} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-slate-900">
+                      {item.actorId?.name || 'System'} <span className="font-normal text-slate-600">{item.action}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400">{new Date(item.createdAt).toLocaleString()}</span>
+                  </div>
+                  {Array.isArray(item.meta?.diffs) && item.meta.diffs.length > 0 && (
+                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-100">
+                      {item.meta.diffs.map((d: any, i: number) => (
+                        <div key={i}>
+                          <strong className="text-slate-700">{d.field}</strong>:{' '}
+                          <span className="line-through text-rose-500">{String(d.from ?? 'empty')}</span> →{' '}
+                          <span className="text-emerald-700 font-medium">{String(d.to ?? 'empty')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -381,6 +617,75 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
               )}
             </div>
 
+            {/* Attachments Section */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Paperclip className="w-3.5 h-3.5" />
+                  <span>Attachments ({task.attachments?.length || 0})</span>
+                </h5>
+                {!isGuest && (
+                  <label className="cursor-pointer inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isUploading ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      disabled={isUploading}
+                      onChange={handleUploadAttachment}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+
+              {(task.attachments?.length || 0) === 0 ? (
+                <p className="text-xs text-slate-400 italic">No files attached.</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {task.attachments?.map((att) => {
+                    const fileUrl = att.url.startsWith('/')
+                      ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${att.url}`
+                      : att.url;
+                    const canDelAtt = canDelete || att.uploadedBy === user?._id;
+                    return (
+                      <div
+                        key={att._id}
+                        className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200/80 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Paperclip className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span className="truncate font-medium text-slate-800">{att.filename}</span>
+                          <span className="text-[10px] text-slate-400 shrink-0">
+                            ({Math.max(1, Math.round(att.size / 1024))} KB)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 text-slate-500 hover:text-brand-600 rounded"
+                            title="Download / Open"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                          </a>
+                          {canDelAtt && (
+                            <button
+                              onClick={() => handleDeleteAttachment(att._id)}
+                              className="p-1 text-slate-400 hover:text-rose-600 rounded"
+                              title="Delete attachment"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Comments Thread */}
             <div className="pt-4 border-t border-slate-200">
               <div className="flex items-center gap-2 mb-4">
@@ -435,7 +740,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a comment..."
+                    placeholder="Write a comment... (tip: type @name to mention a teammate)"
                     className="flex-1 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
                   />
                   <button

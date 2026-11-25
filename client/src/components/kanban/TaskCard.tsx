@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, MessageSquare, Clock, CheckCircle2 } from 'lucide-react';
+import { Calendar, MessageSquare, Clock } from 'lucide-react';
 import { Task } from '../../types';
 
 interface TaskCardProps {

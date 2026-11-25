@@ -18,9 +18,12 @@ const User = require('../models/User');
 const Workspace = require('../models/Workspace');
 const Membership = require('../models/Membership');
 const Project = require('../models/Project');
+const Sprint = require('../models/Sprint');
 const Task = require('../models/Task');
 const Comment = require('../models/Comment');
 const Activity = require('../models/Activity');
+const TimeLog = require('../models/TimeLog');
+const Notification = require('../models/Notification');
 const { runWithSystemContext, runWithTenant } = require('../utils/context');
 
 async function seedData() {
@@ -35,9 +38,12 @@ async function seedData() {
     await Workspace.deleteMany({});
     await Membership.deleteMany({});
     await Project.deleteMany({});
+    await Sprint.deleteMany({});
     await Task.deleteMany({});
     await Comment.deleteMany({});
     await Activity.deleteMany({});
+    await TimeLog.deleteMany({});
+    await Notification.deleteMany({});
 
       // 2. Create Users
       console.log('👤 Creating users with different RBAC roles...');
@@ -136,17 +142,58 @@ async function seedData() {
         const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
         const pastDate = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
+        // Create Sprints for Project 1 (1 completed + 1 active) so Burndown & Velocity charts populate
+        const sprint1 = await Sprint.create({
+          projectId: p1._id,
+          name: 'Sprint 1: Foundation',
+          goal: 'Authentication, navigation, and core UI primitives',
+          startDate: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000),
+          endDate: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+          status: 'completed'
+        });
+
+        const sprint2 = await Sprint.create({
+          projectId: p1._id,
+          name: 'Sprint 2: Real-Time & Polish',
+          goal: 'Push notifications, offline caching, and dark mode',
+          startDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+          endDate: new Date(now.getTime() + 9 * 24 * 60 * 60 * 1000),
+          status: 'active'
+        });
+
         // Array of realistic demo tasks
         const demoTasks = [
           // Project 1: Mobile App Redesign (10 tasks)
-          { projectId: p1._id, title: 'Design onboarding user flows in Figma', status: 'done', priority: 'high', assigneeId: member._id, order: 1000, labels: ['design', 'ui'], dueDate: pastDate, estimateHours: 8 },
-          { projectId: p1._id, title: 'Implement biometric FaceID / TouchID authentication', status: 'done', priority: 'urgent', assigneeId: admin._id, order: 2000, labels: ['security'], dueDate: pastDate, estimateHours: 12 },
-          { projectId: p1._id, title: 'Build bottom tab navigation bar', status: 'in_review', priority: 'medium', assigneeId: member._id, order: 1000, labels: ['ui', 'navigation'], dueDate: tomorrow, estimateHours: 6 },
-          { projectId: p1._id, title: 'Integrate push notification service with FCM', status: 'in_progress', priority: 'high', assigneeId: owner._id, order: 1000, labels: ['notifications'], dueDate: nextWeek, estimateHours: 16 },
-          { projectId: p1._id, title: 'Implement offline caching for project boards', status: 'in_progress', priority: 'urgent', assigneeId: admin._id, order: 2000, labels: ['offline', 'sync'], dueDate: tomorrow, estimateHours: 14 },
-          { projectId: p1._id, title: 'Dark mode theme toggle and persistent preference', status: 'todo', priority: 'low', assigneeId: member._id, order: 1000, labels: ['ui', 'theme'], dueDate: nextWeek, estimateHours: 4 },
-          { projectId: p1._id, title: 'Optimize image asset loading and SVG rendering', status: 'todo', priority: 'medium', assigneeId: member._id, order: 2000, labels: ['performance'], dueDate: nextWeek, estimateHours: 5 },
-          { projectId: p1._id, title: 'Draft test flight beta release checklist', status: 'todo', priority: 'medium', assigneeId: owner._id, order: 3000, labels: ['qa'], dueDate: nextWeek, estimateHours: 3 },
+          {
+            projectId: p1._id,
+            sprintId: sprint1._id,
+            title: 'Design onboarding user flows in Figma',
+            status: 'done',
+            priority: 'high',
+            assigneeId: member._id,
+            order: 1000,
+            labels: ['design', 'ui'],
+            dueDate: pastDate,
+            estimateHours: 8,
+            attachments: [
+              {
+                url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+                filename: 'onboarding-wireframe.png',
+                mimeType: 'image/png',
+                size: 245760,
+                uploadedBy: member._id,
+                uploadedAt: pastDate
+              }
+            ]
+          },
+          { projectId: p1._id, sprintId: sprint1._id, title: 'Implement biometric FaceID / TouchID authentication', status: 'done', priority: 'urgent', assigneeId: admin._id, order: 2000, labels: ['security'], dueDate: pastDate, estimateHours: 12 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Build bottom tab navigation bar', status: 'done', priority: 'medium', assigneeId: member._id, order: 1000, labels: ['ui', 'navigation'], dueDate: tomorrow, estimateHours: 6 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Integrate push notification service with FCM', status: 'in_progress', priority: 'high', assigneeId: owner._id, order: 1000, labels: ['notifications'], dueDate: nextWeek, estimateHours: 16 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Implement offline caching for project boards', status: 'in_progress', priority: 'urgent', assigneeId: admin._id, order: 2000, labels: ['offline', 'sync'], dueDate: tomorrow, estimateHours: 14 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Dark mode theme toggle and persistent preference', status: 'todo', priority: 'low', assigneeId: member._id, order: 1000, labels: ['ui', 'theme'], dueDate: nextWeek, estimateHours: 4 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Optimize image asset loading and SVG rendering', status: 'todo', priority: 'medium', assigneeId: member._id, order: 2000, labels: ['performance'], dueDate: nextWeek, estimateHours: 5 },
+          { projectId: p1._id, sprintId: sprint2._id, title: 'Draft test flight beta release checklist', status: 'todo', priority: 'medium', assigneeId: owner._id, order: 3000, labels: ['qa'], dueDate: nextWeek, estimateHours: 3 },
           { projectId: p1._id, title: 'Investigate deep-linking architecture for invite links', status: 'backlog', priority: 'medium', assigneeId: admin._id, order: 1000, labels: ['research'], dueDate: null, estimateHours: 8 },
           { projectId: p1._id, title: 'Conduct user interviews with 5 beta testers', status: 'backlog', priority: 'low', assigneeId: owner._id, order: 2000, labels: ['research'], dueDate: null, estimateHours: 10 },
 
@@ -178,17 +225,45 @@ async function seedData() {
           {
             taskId: createdTasks[2]._id,
             authorId: owner._id,
-            content: 'Great progress! Please ensure the active tab indicator uses our primary blue accent.'
+            content: 'Great progress @Alex! Please ensure the active tab indicator uses our primary blue accent.'
           },
           {
             taskId: createdTasks[2]._id,
             authorId: member._id,
-            content: 'Updated the theme colors in the latest commit, ready for review!'
+            content: 'Updated the theme colors in the latest commit, @Sarah ready for review!'
           },
           {
             taskId: createdTasks[4]._id,
             authorId: admin._id,
             content: 'Offline SQLite cache is passing sync benchmarks with 5,000 tasks.'
+          }
+        ]);
+
+        // Seed TimeLogs across the current week for Timesheet & Workload charts
+        await TimeLog.create([
+          { taskId: createdTasks[2]._id, projectId: p1._id, userId: member._id, hours: 3.5, date: now, note: 'Navigation bar layout & icons' },
+          { taskId: createdTasks[3]._id, projectId: p1._id, userId: owner._id, hours: 4, date: now, note: 'FCM token registration flow' },
+          { taskId: createdTasks[4]._id, projectId: p1._id, userId: admin._id, hours: 5, date: new Date(now.getTime() - 24 * 60 * 60 * 1000), note: 'IndexedDB & SQLite sync benchmarks' },
+          { taskId: createdTasks[13]._id, projectId: p2._id, userId: admin._id, hours: 2.5, date: now, note: 'Socket.io Redis adapter setup' }
+        ]);
+
+        // Seed @mention Notifications
+        await Notification.create([
+          {
+            userId: member._id,
+            actorId: owner._id,
+            taskId: createdTasks[2]._id,
+            type: 'mention',
+            message: `${owner.name} mentioned you in "${createdTasks[2].title}"`,
+            read: false
+          },
+          {
+            userId: admin._id,
+            actorId: member._id,
+            taskId: createdTasks[2]._id,
+            type: 'mention',
+            message: `${member.name} mentioned you in "${createdTasks[2].title}"`,
+            read: false
           }
         ]);
 
@@ -207,7 +282,12 @@ async function seedData() {
             entityType: 'task',
             entityId: createdTasks[1]._id,
             action: 'moved',
-            meta: { title: createdTasks[1].title, fromStatus: 'in_review', toStatus: 'done' },
+            meta: {
+              title: createdTasks[1].title,
+              fromStatus: 'in_review',
+              toStatus: 'done',
+              diffs: [{ field: 'status', from: 'in_review', to: 'done' }]
+            },
             createdAt: new Date(Date.now() - 3600000 * 3)
           },
           {
@@ -215,7 +295,12 @@ async function seedData() {
             entityType: 'task',
             entityId: createdTasks[2]._id,
             action: 'moved',
-            meta: { title: createdTasks[2].title, fromStatus: 'in_progress', toStatus: 'in_review' },
+            meta: {
+              title: createdTasks[2].title,
+              fromStatus: 'in_progress',
+              toStatus: 'in_review',
+              diffs: [{ field: 'status', from: 'in_progress', to: 'in_review' }]
+            },
             createdAt: new Date(Date.now() - 3600000 * 2)
           },
           {

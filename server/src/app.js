@@ -1,14 +1,26 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
+const pinoHttp = require('pino-http');
+const Sentry = require('@sentry/node');
 const routes = require('./routes');
 const { errorHandler, notFound } = require('./middleware/error');
+const requestIdMiddleware = require('./middleware/requestId');
+const logger = require('./utils/logger');
 const env = require('./config/env');
+
+if (env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: env.SENTRY_DSN,
+    environment: env.NODE_ENV,
+    tracesSampleRate: 0.2
+  });
+}
 
 const app = express();
 
-// Security and utility middleware
+// Security, request tracing, and structured logging middleware
 app.use(helmet());
 app.use(
   cors({
@@ -16,9 +28,32 @@ app.use(
     credentials: true
   })
 );
-app.use(morgan('dev'));
+app.use(requestIdMiddleware);
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req) => req.requestId,
+    serializers: {
+      req: (req) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url
+      }),
+      res: (res) => ({
+        statusCode: res.statusCode
+      })
+    },
+    customProps: (req) => ({
+      requestId: req.requestId,
+      workspaceId: req.workspaceId ? req.workspaceId.toString() : undefined
+    })
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static local uploads fallback (used when Cloudinary is not configured)
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
 // Main API routes
 app.use('/api', routes);

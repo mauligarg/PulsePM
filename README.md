@@ -168,15 +168,56 @@ Password for all pre-seeded evaluation accounts: `password123`
 * `POST   /api/tasks/:id/comments` — Post comment on task
 * `GET    /api/tasks/:id/comments` — Retrieve comment thread
 
-### Personal Tasks & Dynamic Dashboard
-* `GET /api/tasks/mine` — Tasks assigned to current user across all projects
-* `GET /api/dashboard/summary` — Dynamic counts by status, priority, overdue & open tasks
-* `GET /api/activity?limit=` — Audit trail feed of workspace events
-* `GET /api/health` — System uptime and health status
+### Personal Tasks, Time Logs, Notifications, Reports & Audit
+* `GET    /api/tasks/mine` — Tasks assigned to current user across all projects
+* `GET    /api/projects/:id/sprints` & `POST /api/sprints` — Sprint CRUD, start, complete & backlog moves
+* `GET    /api/tasks/:id/timelogs` & `POST /api/tasks/:id/timelogs` — Log hours on a task
+* `PATCH  /api/timelogs/:id` & `DELETE /api/timelogs/:id` — Edit/delete own time logs
+* `GET    /api/timelogs/timesheet?weekStart=` — Weekly timesheet grid per user
+* `POST   /api/tasks/:id/attachments` & `DELETE /api/tasks/:id/attachments/:attachmentId` — Cloudinary/local file attachments
+* `GET    /api/notifications` & `PATCH /api/notifications/:id/read` — @mention notifications
+* `GET    /api/reports/burndown?sprintId=` | `GET /api/reports/velocity` | `GET /api/reports/workload` — Redis-cached aggregation reports
+* `GET    /api/dashboard/summary` — Dynamic counts by status, priority, overdue & open tasks
+* `GET    /api/activity?limit=` & `GET /api/activity/audit` — Append-only audit trail (audit endpoint Owner/Admin only)
+* `GET    /api/health` — System uptime and health status
 
 ---
 
-## 8. Assumptions Made
+## 8. Environment Variables Reference
+
+| Variable | Location | Description |
+| :--- | :--- | :--- |
+| `PORT` | `server/.env` | API port (default `5000`) |
+| `MONGO_URI` | `server/.env` | MongoDB Atlas URI (empty = local `mongodb-memory-server`) |
+| `JWT_SECRET` | `server/.env` | Signing secret (use distinct values for staging vs prod) |
+| `CLIENT_URL` | `server/.env` | Allowed CORS origin (e.g. `https://app.vercel.app`) |
+| `REDIS_URL` | `server/.env` | Upstash Redis `rediss://` URL (empty = in-memory fallback) |
+| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | `server/.env` | Cloudinary upload credentials (empty = local `/uploads` fallback) |
+| `SMTP_HOST` / `PORT` / `USER` / `PASS` / `FROM` | `server/.env` | Nodemailer / SendGrid SMTP settings |
+| `SENTRY_DSN` / `LOG_LEVEL` | `server/.env` | Sentry DSN & Pino log level |
+| `VITE_API_URL` / `VITE_SOCKET_URL` / `VITE_SENTRY_DSN` | `client/.env` | Frontend API, WebSocket & Sentry endpoints |
+
+---
+
+## 9. Viva Prep — Placement & Architecture Q&A
+
+1. **What is multi-tenancy? Shared-DB vs DB-per-tenant:**
+   Multi-tenancy means a single application serves multiple isolated organizations (tenants). In **Shared-DB** (used here with `workspaceId` on every collection), all tenants share collections, keeping infrastructure costs low and migrations simple, while enforcing isolation in software. **DB-per-tenant** gives physical separation and noisy-neighbor isolation at higher operational and connection-pool cost.
+2. **How do you guarantee a query never crosses workspace boundaries, and where does `workspaceId` come from?**
+   `workspaceId` comes **strictly from the verified JWT claim** (`resolveTenant` middleware reads `req.user.workspaceId`, never `req.body` or `req.query`). It is stored in Node's `AsyncLocalStorage`, and our central Mongoose plugin (`server/src/plugins/tenantGuard.js`) intercepts `find*`, `update*`, `delete*`, `save`, `insertMany`, `aggregate`, and `bulkWrite` to inject `workspaceId` automatically—throwing `[TenantGuard Violation]` if context is missing.
+3. **Design your permission model — how is deleting a project authorized?**
+   We use a central RBAC matrix in `server/src/utils/permissions.js` (`owner`, `admin`, `member`, `guest`) enforced by `authorize(permission)` middleware. Only `owner` has `project:delete`, while `admin` has `project:archive`, `member` can create/move/log time on tasks (and edit/delete only their own time logs), and `guest` is strictly read-only.
+4. **How are invitation tokens generated/validated, and why do they expire and stay single-use?**
+   `crypto.randomBytes(32)` generates a high-entropy raw token sent in the invite link; only its **SHA-256 hash** (`hashToken`) is stored in MongoDB (`Invite`). On accept, we hash the incoming token, verify `!invite.used` and `now <= invite.expiresAt` (48h TTL), activate membership, and set `used = true`. Expiry limits the attack window of leaked emails, and single-use prevents replay attacks.
+5. **How do you keep drag-and-drop ordering consistent when two users reorder simultaneously?**
+   We use **fractional gap ordering** (`order = (prev.order + next.order) / 2` with initial 1000 spacing) in `PATCH /api/tasks/:id/move`. Concurrent moves only update the single moved document in $O(1)$ without shifting sibling rows, and if repeated insertions shrink a gap below `0.001`, the server runs an automatic `bulkWrite` column rebalance to restore `1000, 2000, 3000...` spacing.
+6. **How does the audit trail satisfy an enterprise compliance requirement?**
+   Every mutation appends an immutable `Activity` record (`createdAt` only, no update/delete endpoints) capturing `actorId`, `entityType`, `entityId`, `action`, and field-level diffs (`meta.diffs: [{ field, from, to }]`). The workspace-wide Audit Log (`GET /api/activity/audit`) is restricted to `owner`/`admin` and filterable by actor, entity, and date range.
+
+---
+
+## 10. Assumptions Made
 1. **Fallback Database:** If `MONGO_URI` is not provided in `.env`, the system automatically spins up `mongodb-memory-server` for instantaneous evaluation without external database configuration.
-2. **Email Fallback:** If SMTP credentials are not configured, invitation links are logged to the backend console AND returned in a developer-friendly response field `devInviteLink`, with a direct copy/test button in the UI.
+2. **Email, Redis & Cloudinary Fallbacks:** If `SMTP_*`, `REDIS_URL`, or `CLOUDINARY_*` are omitted in local dev, invite links are returned in `devInviteLink`, Redis falls back to in-memory adapter/cache, and file uploads fall back to `server/uploads/`.
 3. **Task Deletion:** Deleting a parent task cascades to delete its subtasks and associated comments to prevent orphaned database records.
+4. **Sprint Scope:** Only one sprint per project can be `active` at a time; completing a sprint moves unfinished tasks either back to the Backlog (`sprintId: null`) or to another planned sprint.

@@ -7,8 +7,6 @@ import {
   YAxis,
   Tooltip,
   Cell,
-  PieChart,
-  Pie,
 } from 'recharts';
 
 interface StatusChartProps {

@@ -9,6 +9,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Board } from './pages/Board';
 import { Projects } from './pages/Projects';
 import { MyTasks } from './pages/MyTasks';
+import { Timesheet } from './pages/Timesheet';
+import { AuditLog } from './pages/AuditLog';
 import { Members } from './pages/Members';
 import { AcceptInvite } from './pages/AcceptInvite';
 
@@ -29,6 +31,8 @@ export const App: React.FC = () => {
             <Route path="/board" element={<Board />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/my-tasks" element={<MyTasks />} />
+            <Route path="/timesheet" element={<Timesheet />} />
+            <Route path="/audit" element={<AuditLog />} />
             <Route path="/members" element={<Members />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>

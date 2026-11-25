@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const projectController = require('../controllers/projectController');
 const taskController = require('../controllers/taskController');
+const sprintController = require('../controllers/sprintController');
 const authenticate = require('../middleware/authenticate');
 const resolveTenant = require('../middleware/resolveTenant');
 const authorize = require('../middleware/authorize');
@@ -29,7 +30,8 @@ router.patch('/:id', authorize('project:update'), projectController.updateProjec
 
 router.delete('/:id', authorize('project:delete'), projectController.deleteProject);
 
-// Nested tasks endpoint: GET /api/projects/:id/tasks
+// Nested tasks & sprints endpoints
 router.get('/:id/tasks', authorize('task:read'), taskController.listTasks);
+router.get('/:id/sprints', authorize('sprint:read'), sprintController.listSprints);
 
 module.exports = router;

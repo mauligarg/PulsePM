@@ -17,7 +17,7 @@ const activitySchema = new mongoose.Schema(
     },
     entityType: {
       type: String,
-      enum: ['project', 'task', 'comment', 'workspace', 'membership'],
+      enum: ['project', 'sprint', 'task', 'comment', 'timelog', 'attachment', 'workspace', 'membership'],
       required: true
     },
     entityId: {

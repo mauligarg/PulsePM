@@ -246,14 +246,106 @@ async function runTests() {
       console.log('🛡️ Multi-tenancy guard and permission matrix are 100% verified.');
     } else {
       console.log('⚠️ SOME TESTS FAILED. Please review the table above.');
+      process.exitCode = 1;
     }
     console.log('=============================================================\n');
 
   } catch (err) {
     console.error('Test execution failed with unexpected exception:', err);
+    process.exitCode = 1;
   } finally {
     await disconnectDB();
   }
 }
 
-runTests();
+/**
+ * Post-deploy live URL isolation verification:
+ * Run with: BASE_URL=https://your-api.onrender.com npm run test:isolation
+ */
+async function runHttpTests(baseUrl) {
+  const api = baseUrl.replace(/\/$/, '') + '/api';
+  const suffix = Date.now();
+  const httpResults = [];
+
+  const reqJson = async (path, method = 'GET', body, token) => {
+    const res = await fetch(`${api}${path}`, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json().catch(() => ({}));
+    return { status: res.status, data };
+  };
+
+  console.log(`\n🌐 Running Live HTTP Multi-Tenant Isolation Check against: ${api}\n`);
+
+  const regA = await reqJson('/auth/register', 'POST', {
+    name: 'Live Alice',
+    email: `alice-${suffix}@iso.test`,
+    password: 'Password123!'
+  });
+  const regB = await reqJson('/auth/register', 'POST', {
+    name: 'Live Bob',
+    email: `bob-${suffix}@iso.test`,
+    password: 'Password123!'
+  });
+
+  const wsA = await reqJson('/workspaces', 'POST', { name: `Live Acme ${suffix}` }, regA.data.data.token);
+  const tokenA = wsA.data.data.token;
+  const wsB = await reqJson('/workspaces', 'POST', { name: `Live Globex ${suffix}` }, regB.data.data.token);
+  const tokenB = wsB.data.data.token;
+  const wsBId = wsB.data.data.workspace._id;
+
+  const projB = await reqJson('/projects', 'POST', { name: 'Globex Secret', key: 'GLX' }, tokenB);
+  const taskB = await reqJson(
+    '/tasks',
+    'POST',
+    { projectId: projB.data.data._id, title: 'Confidential Task B' },
+    tokenB
+  );
+  const taskBId = taskB.data.data._id;
+
+  const readB = await reqJson(`/tasks/${taskBId}`, 'GET', undefined, tokenA);
+  httpResults.push({
+    Test: 'HTTP 1. Cross-Tenant Read',
+    Expected: '404',
+    Actual: String(readB.status),
+    Status: readB.status === 404 ? '✅ PASS' : '❌ FAIL'
+  });
+
+  const patchB = await reqJson(`/tasks/${taskBId}`, 'PATCH', { title: 'Hacked' }, tokenA);
+  httpResults.push({
+    Test: 'HTTP 2. Cross-Tenant Update',
+    Expected: '404',
+    Actual: String(patchB.status),
+    Status: patchB.status === 404 ? '✅ PASS' : '❌ FAIL'
+  });
+
+  const listProjectsTamper = await reqJson(`/workspaces/${wsBId}/projects`, 'GET', undefined, tokenA);
+  const leaked = (listProjectsTamper.data?.data || []).some((p) => p._id === projB.data.data._id);
+  httpResults.push({
+    Test: 'HTTP 3. URL Param Tamper Guard',
+    Expected: 'No Globex projects returned',
+    Actual: leaked ? 'LEAKED' : 'Isolated to Tenant A',
+    Status: !leaked ? '✅ PASS' : '❌ FAIL'
+  });
+
+  console.table(httpResults);
+  if (httpResults.some((r) => !r.Status.includes('PASS'))) {
+    process.exitCode = 1;
+  } else {
+    console.log('🎉 ALL LIVE HTTP ISOLATION TESTS PASSED!\n');
+  }
+}
+
+if (process.env.BASE_URL) {
+  runHttpTests(process.env.BASE_URL).catch((err) => {
+    console.error('Live HTTP isolation test error:', err);
+    process.exit(1);
+  });
+} else {
+  runTests();
+}

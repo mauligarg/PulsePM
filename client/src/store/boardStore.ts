@@ -1,23 +1,28 @@
 import { create } from 'zustand';
-import { Project, Task, TaskStatus } from '../types';
+import { Project, Sprint, Task, TaskStatus } from '../types';
 import { projectApi } from '../api/projects';
+import { sprintApi } from '../api/sprints';
 import { taskApi } from '../api/tasks';
 
 interface BoardState {
   projects: Project[];
   currentProject: Project | null;
+  sprints: Sprint[];
   tasks: Task[];
   isLoadingProjects: boolean;
   isLoadingTasks: boolean;
   filterStatus: string;
   filterAssignee: string;
+  filterSprint: string;
   searchQuery: string;
 
   fetchProjects: () => Promise<void>;
   setCurrentProject: (project: Project) => void;
+  fetchSprints: (projectId?: string) => Promise<void>;
   fetchTasks: (projectId?: string) => Promise<void>;
   setFilterStatus: (status: string) => void;
   setFilterAssignee: (assignee: string) => void;
+  setFilterSprint: (sprint: string) => void;
   setSearchQuery: (query: string) => void;
 
   // Real-time & Optimistic mutations
@@ -37,11 +42,13 @@ interface BoardState {
 export const useBoardStore = create<BoardState>((set, get) => ({
   projects: [],
   currentProject: null,
+  sprints: [],
   tasks: [],
   isLoadingProjects: false,
   isLoadingTasks: false,
   filterStatus: '',
   filterAssignee: '',
+  filterSprint: '',
   searchQuery: '',
 
   fetchProjects: async () => {
@@ -54,7 +61,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       const current = get().currentProject;
       if ((!current || !res.data.some(p => p._id === current._id)) && res.data.length > 0) {
         set({ currentProject: res.data[0] });
-        await get().fetchTasks(res.data[0]._id);
+        await Promise.all([
+          get().fetchSprints(res.data[0]._id),
+          get().fetchTasks(res.data[0]._id),
+        ]);
       }
     } catch (err: any) {
       console.error('Failed to load projects:', err.message);
@@ -63,8 +73,20 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   setCurrentProject: (project) => {
-    set({ currentProject: project });
+    set({ currentProject: project, filterSprint: '' });
+    get().fetchSprints(project._id);
     get().fetchTasks(project._id);
+  },
+
+  fetchSprints: async (projectId) => {
+    const pId = projectId || get().currentProject?._id;
+    if (!pId) return;
+    try {
+      const res = await sprintApi.listByProject(pId);
+      set({ sprints: res.data });
+    } catch (err: any) {
+      console.error('Failed to load sprints:', err.message);
+    }
   },
 
   fetchTasks: async (projectId) => {
@@ -73,10 +95,11 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
     try {
       set({ isLoadingTasks: true });
-      const { filterStatus, filterAssignee, searchQuery } = get();
+      const { filterStatus, filterAssignee, filterSprint, searchQuery } = get();
       const res = await taskApi.listByProject(pId, {
         status: filterStatus || undefined,
         assignee: filterAssignee || undefined,
+        sprint: filterSprint || undefined,
         search: searchQuery || undefined,
       });
       set({ tasks: res.data, isLoadingTasks: false });
@@ -93,6 +116,11 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   setFilterAssignee: (assignee) => {
     set({ filterAssignee: assignee });
+    get().fetchTasks();
+  },
+
+  setFilterSprint: (sprint) => {
+    set({ filterSprint: sprint });
     get().fetchTasks();
   },
 

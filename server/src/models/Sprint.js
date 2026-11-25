@@ -20,16 +20,24 @@ const sprintSchema = new mongoose.Schema(
       required: [true, 'Sprint name is required'],
       trim: true
     },
+    goal: {
+      type: String,
+      default: '',
+      trim: true
+    },
     startDate: {
       type: Date
     },
     endDate: {
       type: Date
     },
+    completedAt: {
+      type: Date
+    },
     status: {
       type: String,
       enum: ['planned', 'active', 'completed'],
-      default: 'active'
+      default: 'planned'
     }
   },
   {

@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const Task = require('../models/Task');
 const Comment = require('../models/Comment');
 const { recordActivity } = require('../utils/activity');
+const { processMentions } = require('../utils/mentions');
+const { invalidateWorkspaceReports } = require('../config/redis');
 
 /**
  * List tasks for a project with optional filters
@@ -15,7 +17,11 @@ const listTasks = async (req, res, next) => {
     const query = { projectId };
     if (status) query.status = status;
     if (assignee) query.assigneeId = assignee;
-    if (sprint) query.sprintId = sprint;
+    if (sprint === 'backlog' || sprint === 'null') {
+      query.sprintId = null;
+    } else if (sprint) {
+      query.sprintId = sprint;
+    }
     if (search) {
       query.title = { $regex: search, $options: 'i' };
     }
@@ -106,6 +112,18 @@ const createTask = async (req, res, next) => {
       io.to(`ws:${req.workspaceId}`).emit('task:created', populated);
     }
 
+    if (description) {
+      await processMentions({
+        text: description,
+        workspaceId: req.workspaceId,
+        actor: req.user,
+        task: populated,
+        io
+      });
+    }
+
+    await invalidateWorkspaceReports(req.workspaceId);
+
     res.status(201).json({
       success: true,
       message: 'Task created successfully',
@@ -186,8 +204,14 @@ const updateTask = async (req, res, next) => {
       'parentTaskId'
     ];
 
+    const diffs = [];
     allowedFields.forEach((field) => {
       if (updates[field] !== undefined) {
+        const prevVal = task[field] ? String(task[field]) : null;
+        const nextVal = updates[field] !== null ? String(updates[field]) : null;
+        if (prevVal !== nextVal) {
+          diffs.push({ field, from: task[field] ?? null, to: updates[field] });
+        }
         task[field] = updates[field];
       }
     });
@@ -203,13 +227,15 @@ const updateTask = async (req, res, next) => {
       entityType: 'task',
       entityId: task._id,
       action: 'updated',
-      meta: { title: task.title, updates }
+      meta: { title: task.title, diffs }
     });
 
     const io = req.app.get('io');
     if (io) {
       io.to(`ws:${req.workspaceId}`).emit('task:updated', populated);
     }
+
+    await invalidateWorkspaceReports(req.workspaceId);
 
     res.json({
       success: true,
@@ -248,13 +274,18 @@ const moveTask = async (req, res, next) => {
     }
 
     const previousStatus = task.status;
+    const previousOrder = task.order;
     let computedOrder = typeof newOrder === 'number' ? newOrder : task.order;
+    let needsRebalance = false;
 
     if (prevTaskId && nextTaskId) {
       const prevTask = await Task.findById(prevTaskId);
       const nextTask = await Task.findById(nextTaskId);
       if (prevTask && nextTask) {
         computedOrder = (prevTask.order + nextTask.order) / 2;
+        if (Math.abs(nextTask.order - prevTask.order) < 0.001) {
+          needsRebalance = true;
+        }
       }
     } else if (prevTaskId && !nextTaskId) {
       const prevTask = await Task.findById(prevTaskId);
@@ -265,6 +296,9 @@ const moveTask = async (req, res, next) => {
       const nextTask = await Task.findById(nextTaskId);
       if (nextTask) {
         computedOrder = nextTask.order / 2;
+        if (computedOrder < 0.001) {
+          needsRebalance = true;
+        }
       }
     }
 
@@ -274,7 +308,37 @@ const moveTask = async (req, res, next) => {
     task.order = computedOrder;
     await task.save();
 
+    // Periodic rebalance: when repeated fractional insertions shrink the gap < 0.001,
+    // re-normalize all tasks in this project column to clean 1000, 2000, 3000... spacing.
+    if (needsRebalance) {
+      const columnTasks = await Task.find({
+        projectId: task.projectId,
+        status: task.status
+      }).sort({ order: 1, updatedAt: -1 });
+
+      const bulkOps = columnTasks.map((t, idx) => ({
+        updateOne: {
+          filter: { _id: t._id },
+          update: { $set: { order: (idx + 1) * 1000 } }
+        }
+      }));
+
+      if (bulkOps.length > 0) {
+        await Task.bulkWrite(bulkOps);
+        const refreshed = await Task.findById(task._id);
+        if (refreshed) task.order = refreshed.order;
+      }
+    }
+
     const populated = await Task.findById(task._id).populate('assigneeId', 'name email avatar');
+
+    const moveDiffs = [];
+    if (previousStatus !== task.status) {
+      moveDiffs.push({ field: 'status', from: previousStatus, to: task.status });
+    }
+    if (previousOrder !== task.order) {
+      moveDiffs.push({ field: 'order', from: previousOrder, to: task.order });
+    }
 
     await recordActivity({
       actorId: req.user._id,
@@ -285,7 +349,8 @@ const moveTask = async (req, res, next) => {
         title: task.title,
         fromStatus: previousStatus,
         toStatus: task.status,
-        order: task.order
+        order: task.order,
+        diffs: moveDiffs
       }
     });
 
@@ -342,6 +407,8 @@ const deleteTask = async (req, res, next) => {
     if (io) {
       io.to(`ws:${req.workspaceId}`).emit('task:deleted', { taskId: id });
     }
+
+    await invalidateWorkspaceReports(req.workspaceId);
 
     res.json({
       success: true,
@@ -412,6 +479,14 @@ const addComment = async (req, res, next) => {
         comment: populated
       });
     }
+
+    await processMentions({
+      text: content,
+      workspaceId: req.workspaceId,
+      actor: req.user,
+      task,
+      io
+    });
 
     res.status(201).json({
       success: true,

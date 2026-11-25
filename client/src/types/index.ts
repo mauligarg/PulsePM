@@ -49,8 +49,56 @@ export interface Project {
   createdAt: string;
 }
 
+export interface Sprint {
+  _id: string;
+  workspaceId: string;
+  projectId: string;
+  name: string;
+  goal?: string;
+  startDate?: string;
+  endDate?: string;
+  completedAt?: string;
+  status: 'planned' | 'active' | 'completed';
+  taskCount?: number;
+  doneCount?: number;
+  totalEstimate?: number;
+  completedEstimate?: number;
+  createdAt: string;
+}
+
 export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'in_review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface Attachment {
+  _id: string;
+  url: string;
+  publicId?: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  uploadedBy?: string;
+  uploadedAt: string;
+}
+
+export interface NotificationItem {
+  _id: string;
+  userId: string;
+  actorId: {
+    _id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  taskId?: {
+    _id: string;
+    title: string;
+    projectId?: string;
+  };
+  type: 'mention' | 'assignment' | 'invite';
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
 
 export interface Task {
   _id: string;
@@ -72,6 +120,7 @@ export interface Task {
   parentTaskId?: string;
   dueDate?: string;
   estimateHours: number;
+  attachments?: Attachment[];
   commentCount?: number;
   createdAt: string;
   updatedAt: string;
@@ -88,6 +137,41 @@ export interface Comment {
   };
   content: string;
   createdAt: string;
+}
+
+export interface TimeLog {
+  _id: string;
+  workspaceId: string;
+  taskId: string | { _id: string; title: string; status: string };
+  projectId: string | { _id: string; name: string; key: string };
+  userId: {
+    _id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  hours: number;
+  date: string;
+  note: string;
+  createdAt: string;
+}
+
+export interface TimesheetProjectRow {
+  projectId: string;
+  projectName: string;
+  projectKey: string;
+  days: Record<string, number>;
+  total: number;
+}
+
+export interface TimesheetData {
+  weekStart: string;
+  weekEnd: string;
+  days: string[];
+  projects: TimesheetProjectRow[];
+  dailyTotals: Record<string, number>;
+  grandTotal: number;
+  logs: TimeLog[];
 }
 
 export interface Activity {

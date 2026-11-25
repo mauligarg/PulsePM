@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckSquare, Calendar, Clock, MessageSquare, Loader2 } from 'lucide-react';
+import { CheckSquare, Calendar, Loader2 } from 'lucide-react';
 import { Task } from '../types';
 import { taskApi } from '../api/tasks';
 import { TaskDrawer } from '../components/kanban/TaskDrawer';

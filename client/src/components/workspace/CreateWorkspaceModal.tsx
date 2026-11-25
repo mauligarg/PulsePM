@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building2, Sparkles, Loader2 } from 'lucide-react';
+import { X, Building2, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../common/Toast';
 

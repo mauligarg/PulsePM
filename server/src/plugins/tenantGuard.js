@@ -183,6 +183,52 @@ function tenantGuard(schema, options = {}) {
       }
     });
   });
+
+  // Pre-bulkWrite hook: enforces workspaceId on every operation inside bulkWrite()
+  schema.pre('bulkWrite', function (next, ops) {
+    const context = getTenantContext();
+    if (context.isSystem || (this.options && this.options.skipTenantCheck)) {
+      return next();
+    }
+
+    const activeWorkspaceId = getWorkspaceId();
+    if (!activeWorkspaceId) {
+      return next(
+        new Error(
+          `[TenantGuard Violation] bulkWrite on '${this.modelName}' blocked. No tenant workspace context was set.`
+        )
+      );
+    }
+
+    const tenantObjectId = mongoose.Types.ObjectId.isValid(activeWorkspaceId)
+      ? new mongoose.Types.ObjectId(activeWorkspaceId)
+      : activeWorkspaceId;
+
+    if (Array.isArray(ops)) {
+      ops.forEach((op) => {
+        if (op.insertOne && op.insertOne.document) {
+          op.insertOne.document.workspaceId = tenantObjectId;
+        }
+        if (op.updateOne && op.updateOne.filter) {
+          op.updateOne.filter.workspaceId = tenantObjectId;
+        }
+        if (op.updateMany && op.updateMany.filter) {
+          op.updateMany.filter.workspaceId = tenantObjectId;
+        }
+        if (op.deleteOne && op.deleteOne.filter) {
+          op.deleteOne.filter.workspaceId = tenantObjectId;
+        }
+        if (op.deleteMany && op.deleteMany.filter) {
+          op.deleteMany.filter.workspaceId = tenantObjectId;
+        }
+        if (op.replaceOne && op.replaceOne.filter && op.replaceOne.replacement) {
+          op.replaceOne.filter.workspaceId = tenantObjectId;
+          op.replaceOne.replacement.workspaceId = tenantObjectId;
+        }
+      });
+    }
+    next();
+  });
 }
 
 module.exports = tenantGuard;

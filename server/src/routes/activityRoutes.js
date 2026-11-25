@@ -9,5 +9,6 @@ const router = express.Router();
 router.use(authenticate, resolveTenant);
 
 router.get('/', authorize('activity:read'), dashboardController.getActivityFeed);
+router.get('/audit', authorize('audit:read'), dashboardController.getActivityFeed);
 
 module.exports = router;

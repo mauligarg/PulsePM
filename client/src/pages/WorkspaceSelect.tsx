@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Plus, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Building2, Plus, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
 
 export const WorkspaceSelect: React.FC = () => {
-  const { workspaces, switchWorkspace, createWorkspace, isLoading, user } = useAuthStore();
+  const { workspaces, switchWorkspace, createWorkspace, user } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
 

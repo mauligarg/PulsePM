@@ -47,9 +47,28 @@ const PERMISSIONS = {
   'comment:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
   'comment:create': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
 
-  // Dashboard & Activity
+  // Sprints
+  'sprint:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
+  'sprint:create': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'sprint:update': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'sprint:delete': [ROLES.OWNER, ROLES.ADMIN],
+
+  // Time Logs (per-resource ownership checked in controller for updateOwn/deleteOwn)
+  'timelog:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
+  'timelog:create': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'timelog:updateOwn': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'timelog:deleteOwn': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'timelog:manageAll': [ROLES.OWNER, ROLES.ADMIN],
+
+  // Attachments
+  'attachment:create': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+  'attachment:delete': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER],
+
+  // Reports, Dashboard, Activity & Audit
   'dashboard:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
-  'activity:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST]
+  'report:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
+  'activity:read': [ROLES.OWNER, ROLES.ADMIN, ROLES.MEMBER, ROLES.GUEST],
+  'audit:read': [ROLES.OWNER, ROLES.ADMIN]
 };
 
 /**

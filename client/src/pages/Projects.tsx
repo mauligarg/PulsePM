@@ -4,10 +4,6 @@ import {
   FolderKanban,
   Plus,
   ArrowRight,
-  Archive,
-  Trash2,
-  Users,
-  CheckCircle2,
   Loader2,
   X,
 } from 'lucide-react';

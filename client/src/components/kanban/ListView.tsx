@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MessageSquare } from 'lucide-react';
+import { Calendar, MessageSquare } from 'lucide-react';
 import { Task } from '../../types';
 import { TaskDrawer } from './TaskDrawer';
 

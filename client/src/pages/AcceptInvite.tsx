@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Building2, CheckCircle2, AlertCircle, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { invitesApi } from '../api/invites';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';

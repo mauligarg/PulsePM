@@ -3,8 +3,6 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  FolderKanban,
-  Users,
   TrendingUp,
   ArrowRight,
   Loader2,
@@ -13,23 +11,37 @@ import {
 import { Link } from 'react-router-dom';
 import { StatCard } from '../components/dashboard/StatCard';
 import { StatusChart } from '../components/dashboard/StatusChart';
+import { BurndownChart } from '../components/dashboard/BurndownChart';
+import { VelocityChart } from '../components/dashboard/VelocityChart';
+import { WorkloadChart } from '../components/dashboard/WorkloadChart';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
 import { TaskDrawer } from '../components/kanban/TaskDrawer';
-import { DashboardSummary, Task } from '../types';
+import { DashboardSummary } from '../types';
 import { dashboardApi } from '../api/dashboard';
 import { useAuthStore } from '../store/authStore';
 
 export const Dashboard: React.FC = () => {
-  const { activeWorkspace, user, role } = useAuthStore();
+  const { activeWorkspace, user } = useAuthStore();
   const [data, setData] = useState<DashboardSummary | null>(null);
+  const [burndown, setBurndown] = useState<any>(null);
+  const [velocity, setVelocity] = useState<any[]>([]);
+  const [workload, setWorkload] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const fetchSummary = async () => {
     try {
       setIsLoading(true);
-      const res = await dashboardApi.getSummary();
-      setData(res.data);
+      const [sumRes, burnRes, velRes, workRes] = await Promise.all([
+        dashboardApi.getSummary(),
+        dashboardApi.getBurndown().catch(() => ({ data: null })),
+        dashboardApi.getVelocity().catch(() => ({ data: [] })),
+        dashboardApi.getWorkload().catch(() => ({ data: [] })),
+      ]);
+      setData(sumRes.data);
+      setBurndown(burnRes.data);
+      setVelocity(velRes.data || []);
+      setWorkload(workRes.data || []);
     } catch (err: any) {
       console.error('Error fetching dashboard summary:', err.message);
     } finally {
@@ -129,6 +141,13 @@ export const Dashboard: React.FC = () => {
         <div>
           <ActivityFeed activities={data.recentActivity} />
         </div>
+      </div>
+
+      {/* Row 2.5: Agile Aggregation Reports (Burndown, Velocity, Workload) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <BurndownChart data={burndown} />
+        <VelocityChart data={velocity} />
+        <WorkloadChart data={workload} />
       </div>
 
       {/* Row 3: Actionable Lists (Overdue Tasks & My Open Tasks) */}

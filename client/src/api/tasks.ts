@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Task, Comment } from '../types';
+import { Task, Comment, Attachment } from '../types';
 
 export const taskApi = {
   listByProject: (
@@ -11,7 +11,7 @@ export const taskApi = {
   getById: (id: string): Promise<{ success: boolean; data: Task & { subtasks: Task[]; comments: Comment[] } }> =>
     apiClient.get(`/tasks/${id}`) as any,
 
-  create: (data: Partial<Task>): Promise<{ success: boolean; data: Task }> =>
+  create: (data: Omit<Partial<Task>, 'assigneeId'> & { assigneeId?: string }): Promise<{ success: boolean; data: Task }> =>
     apiClient.post('/tasks', data) as any,
 
   update: (id: string, updates: Partial<Task>): Promise<{ success: boolean; data: Task }> =>
@@ -34,4 +34,15 @@ export const taskApi = {
 
   getComments: (taskId: string): Promise<{ success: boolean; data: Comment[] }> =>
     apiClient.get(`/tasks/${taskId}/comments`) as any,
+
+  uploadAttachment: (taskId: string, file: File): Promise<{ success: boolean; data: Attachment }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post(`/tasks/${taskId}/attachments`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }) as any;
+  },
+
+  deleteAttachment: (taskId: string, attachmentId: string): Promise<{ success: boolean }> =>
+    apiClient.delete(`/tasks/${taskId}/attachments/${attachmentId}`) as any,
 };

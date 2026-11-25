@@ -1,10 +1,15 @@
+const Sentry = require('@sentry/node');
+const logger = require('../utils/logger');
+const env = require('../config/env');
+
 /**
  * Central Error Handler Middleware
  * Formats all application errors into a predictable JSON shape:
- * { success: false, message: string, errors?: Array }
+ * { success: false, message: string, requestId?: string, errors?: Array }
  */
 const errorHandler = (err, req, res, next) => {
-  console.error('[Application Error]', err.stack || err);
+  const log = req.log || logger;
+  log.error({ err, requestId: req.requestId, workspaceId: req.workspaceId }, err.message || 'Application Error');
 
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
@@ -39,9 +44,18 @@ const errorHandler = (err, req, res, next) => {
     message = 'Authentication token invalid or expired';
   }
 
+  if (statusCode >= 500 && env.SENTRY_DSN) {
+    Sentry.withScope((scope) => {
+      if (req.requestId) scope.setTag('requestId', req.requestId);
+      if (req.workspaceId) scope.setTag('workspaceId', req.workspaceId.toString());
+      Sentry.captureException(err);
+    });
+  }
+
   res.status(statusCode).json({
     success: false,
     message,
+    ...(req.requestId ? { requestId: req.requestId } : {}),
     ...(errors ? { errors } : {})
   });
 };
@@ -49,7 +63,8 @@ const errorHandler = (err, req, res, next) => {
 const notFound = (req, res, next) => {
   res.status(404).json({
     success: false,
-    message: `API Route not found: ${req.method} ${req.originalUrl}`
+    message: `API Route not found: ${req.method} ${req.originalUrl}`,
+    ...(req.requestId ? { requestId: req.requestId } : {})
   });
 };
 

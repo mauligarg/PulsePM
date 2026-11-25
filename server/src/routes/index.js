@@ -6,6 +6,10 @@ const projectRoutes = require('./projectRoutes');
 const taskRoutes = require('./taskRoutes');
 const dashboardRoutes = require('./dashboardRoutes');
 const activityRoutes = require('./activityRoutes');
+const sprintRoutes = require('./sprintRoutes');
+const timeLogRoutes = require('./timeLogRoutes');
+const notificationRoutes = require('./notificationRoutes');
+const reportRoutes = require('./reportRoutes');
 
 const router = express.Router();
 
@@ -22,7 +26,11 @@ router.use('/auth', authRoutes);
 router.use('/workspaces', workspaceRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/projects', projectRoutes);
+router.use('/sprints', sprintRoutes);
 router.use('/tasks', taskRoutes);
+router.use('/timelogs', timeLogRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/reports', reportRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/activity', activityRoutes);
 

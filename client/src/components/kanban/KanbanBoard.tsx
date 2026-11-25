@@ -65,7 +65,6 @@ export const KanbanBoard: React.FC = () => {
 
     // Target status can be determined either by dropping directly on column, or dropping on another task
     let targetStatus: TaskStatus = task.status;
-    let targetIndex = -1;
 
     // Did we drop onto a column?
     if (COLUMNS.some((col) => col.id === over.id)) {

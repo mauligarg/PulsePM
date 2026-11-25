@@ -11,7 +11,10 @@
  */
 
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
 const { verifyToken } = require('../utils/tokens');
+const { createRedisClient } = require('../config/redis');
+const env = require('../config/env');
 
 const setupSockets = (httpServer, allowedOrigin) => {
   const io = new Server(httpServer, {
@@ -21,6 +24,20 @@ const setupSockets = (httpServer, allowedOrigin) => {
       credentials: true
     }
   });
+
+  // Attach Upstash Redis Adapter if REDIS_URL is configured; otherwise fall back to in-memory
+  if (env.REDIS_URL) {
+    try {
+      const pubClient = createRedisClient('socket-pub');
+      const subClient = pubClient.duplicate();
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('🔌 [Socket.io] Redis adapter enabled for multi-instance sync');
+    } catch (err) {
+      console.warn('⚠️ [Socket.io] Failed to attach Redis adapter, using in-memory:', err.message);
+    }
+  } else {
+    console.log('🔌 [Socket.io] Using in-memory adapter (REDIS_URL not set)');
+  }
 
   // JWT handshake authentication middleware
   io.use((socket, next) => {
@@ -45,6 +62,11 @@ const setupSockets = (httpServer, allowedOrigin) => {
 
   io.on('connection', (socket) => {
     const workspaceId = socket.user.workspaceId;
+
+    // Join user-scoped room for direct @mention notifications
+    if (socket.user.userId) {
+      socket.join(`user:${socket.user.userId}`);
+    }
 
     if (workspaceId) {
       const room = `ws:${workspaceId}`;

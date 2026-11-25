@@ -5,6 +5,7 @@ import {
   KanbanSquare,
   FolderKanban,
   CheckSquare,
+  Clock,
   Users,
   ChevronDown,
   Plus,
@@ -24,7 +25,11 @@ export const Sidebar: React.FC<{ onCreateWorkspace: () => void }> = ({ onCreateW
     { label: 'Kanban Board', path: '/board', icon: KanbanSquare },
     { label: 'Projects', path: '/projects', icon: FolderKanban },
     { label: 'My Tasks', path: '/my-tasks', icon: CheckSquare },
+    { label: 'Timesheet', path: '/timesheet', icon: Clock },
     { label: 'Team Members', path: '/members', icon: Users },
+    ...(role === 'owner' || role === 'admin'
+      ? [{ label: 'Audit Log', path: '/audit', icon: ShieldAlert }]
+      : []),
   ];
 
   const roleBadgeColors: Record<string, string> = {

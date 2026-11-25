@@ -80,7 +80,18 @@ const taskSchema = new mongoose.Schema(
     estimateHours: {
       type: Number,
       default: 0
-    }
+    },
+    attachments: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String, default: '' },
+        filename: { type: String, required: true },
+        mimeType: { type: String, default: 'application/octet-stream' },
+        size: { type: Number, default: 0 },
+        uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        uploadedAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   {
     timestamps: true

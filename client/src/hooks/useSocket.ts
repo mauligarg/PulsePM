@@ -2,11 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../store/authStore';
 import { useBoardStore } from '../store/boardStore';
+import { useNotificationStore } from '../store/notificationStore';
 
 export const useSocket = () => {
   const token = useAuthStore((s) => s.token);
   const activeWorkspace = useAuthStore((s) => s.activeWorkspace);
   const { applyTaskMoved, applyTaskUpdated, applyTaskCreated, applyTaskDeleted } = useBoardStore();
+  const { addNotification } = useNotificationStore();
 
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -61,6 +63,11 @@ export const useSocket = () => {
     socket.on('task:deleted', (data: { taskId: string }) => {
       console.log('🗑️ Real-time event [task:deleted]:', data);
       applyTaskDeleted(data.taskId);
+    });
+
+    socket.on('notification:new', (notif: any) => {
+      console.log('🔔 Real-time notification [@mention]:', notif);
+      addNotification(notif);
     });
 
     return () => {

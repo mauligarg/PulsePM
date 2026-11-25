@@ -218,7 +218,12 @@ const updateMemberRole = async (req, res, next) => {
       entityType: 'membership',
       entityId: membership._id,
       action: 'updated',
-      meta: { targetUserId: userId, oldRole, newRole: role }
+      meta: {
+        targetUserId: userId,
+        oldRole,
+        newRole: role,
+        diffs: [{ field: 'role', from: oldRole, to: role }]
+      }
     });
 
     res.json({

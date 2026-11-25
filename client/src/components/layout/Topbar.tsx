@@ -1,15 +1,25 @@
-import React from 'react';
-import { Search, Radio, Plus, FolderKanban, ShieldCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, FolderKanban, Bell, CheckCheck } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useBoardStore } from '../../store/boardStore';
+import { useNotificationStore } from '../../store/notificationStore';
 import { useSocket } from '../../hooks/useSocket';
 
 export const Topbar: React.FC<{ onNewTask?: () => void }> = ({ onNewTask }) => {
   const { activeWorkspace, role } = useAuthStore();
   const { projects, currentProject, setCurrentProject, searchQuery, setSearchQuery } = useBoardStore();
+  const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
+    useNotificationStore();
   const { isConnected } = useSocket();
+  const [showNotifs, setShowNotifs] = useState(false);
 
   const isGuest = role === 'guest';
+
+  useEffect(() => {
+    if (activeWorkspace?._id) {
+      fetchNotifications();
+    }
+  }, [activeWorkspace?._id]);
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 gap-4">
@@ -83,6 +93,69 @@ export const Topbar: React.FC<{ onNewTask?: () => void }> = ({ onNewTask }) => {
           <span className="hidden sm:inline text-[11px]">
             {isConnected ? 'Live Sync' : 'Connecting'}
           </span>
+        </div>
+
+        {/* Notifications Bell (@mentions) */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNotifs(!showNotifs)}
+            className="relative p-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors"
+            title="Notifications"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {showNotifs && (
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-900">
+                  Notifications ({unreadCount} unread)
+                </span>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={() => markAllAsRead()}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-brand-600 hover:text-brand-700"
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    Mark all read
+                  </button>
+                )}
+              </div>
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                {notifications.length === 0 ? (
+                  <p className="py-8 text-center text-xs text-slate-400 italic">
+                    No notifications yet. Mention teammates with @name!
+                  </p>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      onClick={() => {
+                        if (!n.read) markAsRead(n._id);
+                        setShowNotifs(false);
+                      }}
+                      className={`px-4 py-3 text-xs cursor-pointer hover:bg-slate-50 transition-colors ${
+                        !n.read ? 'bg-brand-50/40' : ''
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-slate-800 font-medium leading-snug">{n.message}</p>
+                        {!n.read && <span className="w-2 h-2 rounded-full bg-brand-600 shrink-0 mt-1" />}
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-1 block">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Add Task button (Hidden for Guests per RBAC) */}

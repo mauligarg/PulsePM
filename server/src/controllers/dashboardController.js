@@ -138,8 +138,9 @@ const getDashboardSummary = async (req, res, next) => {
 };
 
 /**
- * Get activity feed with pagination / limit
- * GET /api/activity?limit=&page=
+ * Get activity feed / audit log with filters (actorId, entityType, entityId, from, to)
+ * GET /api/activity?limit=&page=&actorId=&entityType=&entityId=&from=&to=
+ * GET /api/activity/audit (owner/admin only)
  */
 const getActivityFeed = async (req, res, next) => {
   try {
@@ -147,13 +148,32 @@ const getActivityFeed = async (req, res, next) => {
     const page = Math.max(Number(req.query.page) || 1, 1);
     const skip = (page - 1) * limit;
 
-    const activities = await Activity.find()
+    const filter = {};
+    if (req.query.actorId) filter.actorId = req.query.actorId;
+    if (req.query.entityType) filter.entityType = req.query.entityType;
+    if (req.query.entityId) {
+      filter.$or = [
+        { entityId: req.query.entityId },
+        { 'meta.taskId': req.query.entityId }
+      ];
+    }
+    if (req.query.from || req.query.to) {
+      filter.createdAt = {};
+      if (req.query.from) filter.createdAt.$gte = new Date(req.query.from);
+      if (req.query.to) {
+        const toDate = new Date(req.query.to);
+        toDate.setUTCHours(23, 59, 59, 999);
+        filter.createdAt.$lte = toDate;
+      }
+    }
+
+    const activities = await Activity.find(filter)
       .populate('actorId', 'name email avatar')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await Activity.countDocuments();
+    const total = await Activity.countDocuments(filter);
 
     res.json({
       success: true,

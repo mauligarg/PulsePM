@@ -18,7 +18,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   defaultStatus = 'todo',
   onClose,
 }) => {
-  const { currentProject, applyTaskCreated } = useBoardStore();
+  const { currentProject, sprints, applyTaskCreated } = useBoardStore();
   const activeWorkspace = useAuthStore((s) => s.activeWorkspace);
   const { toast } = useToast();
 
@@ -26,6 +26,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState<TaskStatus>(defaultStatus);
   const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [sprintId, setSprintId] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [estimateHours, setEstimateHours] = useState('0');
@@ -64,6 +65,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         description: description.trim(),
         status,
         priority,
+        sprintId: sprintId || undefined,
         assigneeId: assigneeId || undefined,
         dueDate: dueDate || undefined,
         estimateHours: Number(estimateHours) || 0,
@@ -224,6 +226,25 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
+          </div>
+
+          {/* Sprint */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Sprint</label>
+            <select
+              value={sprintId}
+              onChange={(e) => setSprintId(e.target.value)}
+              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            >
+              <option value="">Backlog (No Sprint)</option>
+              {sprints
+                .filter((s) => s.status !== 'completed')
+                .map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.name} ({s.status})
+                  </option>
+                ))}
+            </select>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
