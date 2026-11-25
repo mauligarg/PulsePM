@@ -17,8 +17,12 @@ module.exports = {
     PASS: process.env.SMTP_PASS || '',
     FROM: process.env.SMTP_FROM || 'no-reply@saas-pm.local'
   },
-  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
-  BREVO_API_KEY: process.env.BREVO_API_KEY || '',
+  GMAIL: {
+    CLIENT_ID: process.env.GMAIL_CLIENT_ID || '',
+    CLIENT_SECRET: process.env.GMAIL_CLIENT_SECRET || '',
+    REFRESH_TOKEN: process.env.GMAIL_REFRESH_TOKEN || '',
+    USER: process.env.GMAIL_USER || ''
+  },
   REDIS_URL: process.env.REDIS_URL || '',
   CLOUDINARY: {
     CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',

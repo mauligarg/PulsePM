@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
     "db:clear": "node src/scripts/clear.js",
-    "test:isolation": "node src/scripts/isolationTest.js"
+    "test:isolation": "node src/scripts/isolationTest.js",
+    "test:mailer": "node src/scripts/mailerTest.js"
   },
   "dependencies": {
     "@sentry/node": "^11.17.0",
@@ -20,6 +21,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "googleapis": "^190.0.0",
     "helmet": "^8.0.0",
     "ioredis": "^6.1.0",
     "jsonwebtoken": "^9.0.2",

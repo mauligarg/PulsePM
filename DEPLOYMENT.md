@@ -37,14 +37,21 @@ This guide covers deploying **PulsePM** with separate **Staging** and **Producti
 2. Copy **Cloud Name**, **API Key**, and **API Secret**.
 3. Paste into backend: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 
-### D. Email (Nodemailer / SendGrid for Invitations)
-1. For SendGrid: create an API key in SendGrid → **Settings → API Keys**.
-2. Set:
-   - `SMTP_HOST=smtp.sendgrid.net`
-   - `SMTP_PORT=587`
-   - `SMTP_USER=apikey`
-   - `SMTP_PASS=<YOUR_SENDGRID_API_KEY>`
-   - `SMTP_FROM=invites@yourdomain.com`
+### D. Google Gmail API (OAuth2 over HTTPS for Invitations)
+Render's free tier blocks outbound SMTP ports (`25`, `465`, `587`), so production invitation emails use the **Gmail API over HTTPS (`port 443`)**:
+1. In [Google Cloud Console](https://console.cloud.google.com):
+   - Create/select a project → **APIs & Services → Library** → enable **Gmail API**.
+   - Go to **Google Auth Platform / OAuth consent screen** → choose **External** → add scope `https://www.googleapis.com/auth/gmail.send`.
+   - Go to **Clients → Create OAuth client ID** (Web application, redirect URI `https://developers.google.com/oauthplayground`).
+   - Use [OAuth 2.0 Playground](https://developers.google.com/oauthplayground) (with your own Client ID & Secret in Settings) to authorize `https://www.googleapis.com/auth/gmail.send` and exchange for a **Refresh Token**.
+2. Set in Render **Environment**:
+   - `GMAIL_CLIENT_ID=<your-oauth-client-id>`
+   - `GMAIL_CLIENT_SECRET=<your-oauth-client-secret>`
+   - `GMAIL_REFRESH_TOKEN=<your-oauth-refresh-token>`
+   - `GMAIL_USER=<your-gmail-address>`
+3. **Google OAuth Production Considerations**:
+   - **Testing mode 7-day expiry**: While an External OAuth app's Publishing Status is **Testing**, Google expires issued refresh tokens after **7 days** (requiring re-authorization or publishing).
+   - **Production publishing & verification**: Publishing the app to **In Production** removes the 7-day Testing-mode cap, though `gmail.send` is a **restricted/sensitive scope** — Google displays an "Unverified app" warning (and caps unverified user grants) unless the app completes **Google OAuth verification** (and CASA security assessment if required for restricted scopes). Note that even in Production, refresh tokens can still be revoked by the user, password change, or Google security policies (not guaranteed permanent).
 
 ### E. Sentry (Error Tracking & 5xx Alerting)
 1. Log into [Sentry](https://sentry.io) → **Projects → Create Project**:
@@ -75,11 +82,10 @@ This guide covers deploying **PulsePM** with separate **Staging** and **Producti
    CLOUDINARY_CLOUD_NAME=<cloud-name>
    CLOUDINARY_API_KEY=<api-key>
    CLOUDINARY_API_SECRET=<api-secret>
-   SMTP_HOST=smtp.sendgrid.net
-   SMTP_PORT=587
-   SMTP_USER=apikey
-   SMTP_PASS=<sendgrid-key>
-   SMTP_FROM=no-reply@yourdomain.com
+   GMAIL_CLIENT_ID=<oauth-client-id>
+   GMAIL_CLIENT_SECRET=<oauth-client-secret>
+   GMAIL_REFRESH_TOKEN=<oauth-refresh-token>
+   GMAIL_USER=<your-gmail-address>
    LOG_LEVEL=info
    SENTRY_DSN=<server-sentry-dsn>
    ```
