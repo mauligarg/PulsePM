@@ -8,7 +8,7 @@ function resolveApiBase(): string {
         '[PulsePM] VITE_API_URL is not set in production! Falling back to http://localhost:5000/api which will fail on deployed sites.'
       );
     }
-    return 'http://localhost:5000/api';
+    return 'https://pulsepm-saas.vercel.app/api';
   }
   const normalized = raw.replace(/\/+$/, '');
   return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
