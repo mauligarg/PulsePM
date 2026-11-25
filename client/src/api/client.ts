@@ -1,6 +1,20 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+function resolveApiBase(): string {
+  const raw = import.meta.env.VITE_API_URL?.trim();
+  if (!raw) {
+    if (import.meta.env.PROD) {
+      console.error(
+        '[PulsePM] VITE_API_URL is not set in production! Falling back to http://localhost:5000/api which will fail on deployed sites.'
+      );
+    }
+    return 'http://localhost:5000/api';
+  }
+  const normalized = raw.replace(/\/+$/, '');
+  return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+}
+
+export const API_BASE = resolveApiBase();
 
 export const apiClient = axios.create({
   baseURL: API_BASE,

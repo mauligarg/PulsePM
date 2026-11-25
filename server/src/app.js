@@ -19,12 +19,26 @@ if (env.SENTRY_DSN) {
 }
 
 const app = express();
+app.set('trust proxy', 1);
+
+const allowedOrigins = (env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
 
 // Security, request tracing, and structured logging middleware
 app.use(helmet());
 app.use(
   cors({
-    origin: env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow non-browser requests (curl, health checks, server-to-server)
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(normalized)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS blocked origin: ${origin}`));
+    },
     credentials: true
   })
 );

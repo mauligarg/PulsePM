@@ -23,7 +23,11 @@ export const useSocket = () => {
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    const rawSocketUrl =
+      import.meta.env.VITE_SOCKET_URL?.trim() ||
+      import.meta.env.VITE_API_URL?.trim().replace(/\/api\/?$/, '') ||
+      'http://localhost:5000';
+    const socketUrl = rawSocketUrl.replace(/\/+$/, '');
 
     const socket = io(socketUrl, {
       auth: { token },

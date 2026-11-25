@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Task, Comment, Member, TaskStatus, TaskPriority, TimeLog, Activity } from '../../types';
 import { taskApi } from '../../api/tasks';
+import { API_BASE } from '../../api/client';
 import { timeLogApi } from '../../api/timelogs';
 import { apiClient } from '../../api/client';
 import { workspaceApi } from '../../api/workspaces';
@@ -644,7 +645,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
                 <div className="space-y-1.5">
                   {task.attachments?.map((att) => {
                     const fileUrl = att.url.startsWith('/')
-                      ? `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${att.url}`
+                      ? `${API_BASE.replace(/\/api\/?$/, '')}${att.url}`
                       : att.url;
                     const canDelAtt = canDelete || att.uploadedBy === user?._id;
                     return (

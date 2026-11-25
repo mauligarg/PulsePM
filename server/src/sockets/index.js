@@ -17,9 +17,20 @@ const { createRedisClient } = require('../config/redis');
 const env = require('../config/env');
 
 const setupSockets = (httpServer, allowedOrigin) => {
+  const allowedOrigins = (allowedOrigin || 'http://localhost:5173')
+    .split(',')
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
   const io = new Server(httpServer, {
     cors: {
-      origin: allowedOrigin || '*',
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin.replace(/\/+$/, ''))) {
+          return callback(null, true);
+        }
+        return callback(new Error(`Socket CORS blocked origin: ${origin}`));
+      },
       methods: ['GET', 'POST', 'PATCH', 'DELETE'],
       credentials: true
     }
