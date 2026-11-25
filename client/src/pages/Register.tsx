@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
 
 export const Register: React.FC = () => {
-  const { register, isLoading } = useAuthStore();
+  const { register } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -14,6 +14,7 @@ export const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,7 +23,9 @@ export const Register: React.FC = () => {
       return;
     }
 
+    setIsSubmitting(true);
     const success = await register(name, email, password);
+    setIsSubmitting(false);
     if (success) {
       toast('Registration successful!');
       navigate(redirectTo);
@@ -86,10 +89,10 @@ export const Register: React.FC = () => {
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
-              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
               <span>Get Started</span>
             </button>
           </form>
