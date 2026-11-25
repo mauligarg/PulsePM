@@ -8,6 +8,7 @@ if (env.SMTP.HOST && env.SMTP.USER) {
     host: env.SMTP.HOST,
     port: env.SMTP.PORT,
     secure: env.SMTP.PORT === 465,
+    family: 4,
     connectionTimeout: 5000,
     greetingTimeout: 5000,
     socketTimeout: 8000,
