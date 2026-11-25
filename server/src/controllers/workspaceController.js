@@ -339,13 +339,18 @@ const createInvite = async (req, res, next) => {
 
     const inviteLink = `${env.CLIENT_URL}/invites/accept?token=${rawToken}`;
 
-    // Send email or log to console
-    const mailResult = await sendInviteEmail({
-      to: email,
-      workspaceName: workspace.name,
-      inviterName: req.user.name,
-      inviteLink
-    });
+    // Send email (bounded to 6s so blocked SMTP on free-tier hosts never hangs the request)
+    const mailResult = await Promise.race([
+      sendInviteEmail({
+        to: email,
+        workspaceName: workspace.name,
+        inviterName: req.user.name,
+        inviteLink
+      }),
+      new Promise((resolve) =>
+        setTimeout(() => resolve({ sent: false, timedOut: true, inviteLink }), 6000)
+      )
+    ]);
 
     await recordActivity({
       workspaceId,
@@ -358,12 +363,15 @@ const createInvite = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: `Invitation successfully sent to ${email}`,
+      message: mailResult?.sent
+        ? `Invitation email sent to ${email}`
+        : `Invitation link generated for ${email}`,
       data: {
         email,
         role,
         expiresAt,
-        // Provided in dev-only response for seamless evaluation testing
+        emailSent: Boolean(mailResult?.sent),
+        // Provided so invite links can always be copied/shared even if SMTP is blocked
         devInviteLink: inviteLink,
         devRawToken: rawToken
       }
