@@ -18,6 +18,7 @@ export const Members: React.FC = () => {
   const { toast } = useToast();
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInviteOpen, setIsInviteOpen] = useState(false);
 
@@ -26,6 +27,7 @@ export const Members: React.FC = () => {
   const [inviteRole, setInviteRole] = useState<'admin' | 'member' | 'guest'>('member');
   const [isInviting, setIsInviting] = useState(false);
   const [generatedInviteLink, setGeneratedInviteLink] = useState<string | null>(null);
+  const [inviteEmailSent, setInviteEmailSent] = useState(false);
 
   const canManageMembers = role === 'owner' || role === 'admin';
 
@@ -33,8 +35,12 @@ export const Members: React.FC = () => {
     if (!activeWorkspace?._id) return;
     try {
       setIsLoading(true);
-      const res = await workspaceApi.getMembers(activeWorkspace._id);
-      setMembers(res.data);
+      const [memRes, invRes] = await Promise.all([
+        workspaceApi.getMembers(activeWorkspace._id),
+        canManageMembers ? workspaceApi.listInvites(activeWorkspace._id).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+      ]);
+      setMembers(memRes.data);
+      setPendingInvites(invRes.data || []);
     } catch (err: any) {
       toast(err.message, 'error');
     } finally {
@@ -70,6 +76,17 @@ export const Members: React.FC = () => {
     }
   };
 
+  const handleRevokeInvite = async (inviteId: string) => {
+    if (!activeWorkspace?._id) return;
+    try {
+      await workspaceApi.revokeInvite(activeWorkspace._id, inviteId);
+      toast('Invitation revoked');
+      loadMembers();
+    } catch (err: any) {
+      toast(err.message, 'error');
+    }
+  };
+
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeWorkspace?._id || !inviteEmail.trim()) return;
@@ -81,12 +98,15 @@ export const Members: React.FC = () => {
         role: inviteRole,
       });
 
-      toast(`Invitation generated for ${inviteEmail}!`);
+      setInviteEmailSent(Boolean(res.data?.emailSent));
+      toast(res.message || `Invitation generated for ${inviteEmail}!`);
       if (res.data?.devInviteLink) {
         setGeneratedInviteLink(res.data.devInviteLink);
+        loadMembers();
       } else {
         setIsInviteOpen(false);
         setInviteEmail('');
+        loadMembers();
       }
     } catch (err: any) {
       toast(err.message, 'error');
@@ -231,6 +251,38 @@ export const Members: React.FC = () => {
         </div>
       </div>
 
+      {/* Pending Invitations (Owner / Admin only) */}
+      {canManageMembers && pendingInvites.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Pending Invitations ({pendingInvites.length})
+            </h3>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {pendingInvites.map((inv) => (
+              <div key={inv._id} className="px-4 py-3 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-mono font-semibold text-slate-900">{inv.email}</span>
+                  <span className="ml-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    {inv.role}
+                  </span>
+                  <span className="ml-2 text-[11px] text-slate-400">
+                    Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleRevokeInvite(inv._id)}
+                  className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  Revoke
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Invite Modal */}
       {isInviteOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
@@ -258,9 +310,13 @@ export const Members: React.FC = () => {
                 <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-xs font-bold text-emerald-900">Invitation Generated!</h4>
+                    <h4 className="text-xs font-bold text-emerald-900">
+                      {inviteEmailSent ? 'Invitation Email Sent!' : 'Invitation Link Ready!'}
+                    </h4>
                     <p className="text-xs text-emerald-700 mt-1">
-                      Because SMTP is in dev/local mode, copy the evaluation invite link below:
+                      {inviteEmailSent
+                        ? 'An email was delivered. You can also copy the single-use invite link below:'
+                        : 'Copy and share the single-use 48h invite link below:'}
                     </p>
                   </div>
                 </div>

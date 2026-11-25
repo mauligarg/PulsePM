@@ -67,6 +67,22 @@ router.post(
   workspaceController.createInvite
 );
 
+router.get(
+  '/:id/invites',
+  authenticate,
+  resolveTenant,
+  authorize('member:invite'),
+  workspaceController.listInvites
+);
+
+router.delete(
+  '/:id/invites/:inviteId',
+  authenticate,
+  resolveTenant,
+  authorize('member:invite'),
+  workspaceController.revokeInvite
+);
+
 // Route alias: GET /workspaces/:id/projects
 router.get(
   '/:id/projects',

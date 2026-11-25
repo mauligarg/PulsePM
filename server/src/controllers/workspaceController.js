@@ -321,6 +321,14 @@ const createInvite = async (req, res, next) => {
       }
     }
 
+    // Replace any previous unused invite for the same email in this workspace
+    const normalizedEmail = email.toLowerCase().trim();
+    await Invite.deleteMany({
+      workspaceId,
+      email: normalizedEmail,
+      used: false
+    });
+
     // Generate high-entropy raw token and hash it with SHA-256
     const rawToken = generateInviteToken();
     const tokenHash = hashToken(rawToken);
@@ -330,14 +338,18 @@ const createInvite = async (req, res, next) => {
 
     await Invite.create({
       workspaceId,
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       role,
       tokenHash,
       invitedById: req.user._id,
       expiresAt
     });
 
-    const inviteLink = `${env.CLIENT_URL}/invites/accept?token=${rawToken}`;
+    const primaryClientUrl = (env.CLIENT_URL || 'http://localhost:5173')
+      .split(',')[0]
+      .trim()
+      .replace(/\/+$/, '');
+    const inviteLink = `${primaryClientUrl}/invites/accept?token=${rawToken}`;
 
     // Send email (bounded to 6s so blocked SMTP on free-tier hosts never hangs the request)
     const mailResult = await Promise.race([
@@ -381,6 +393,67 @@ const createInvite = async (req, res, next) => {
   }
 };
 
+/**
+ * List pending (unused, unexpired) invitations for the active workspace
+ * GET /api/workspaces/:id/invites
+ */
+const listInvites = async (req, res, next) => {
+  try {
+    const invites = await Invite.find({
+      workspaceId: req.workspaceId,
+      used: false,
+      expiresAt: { $gt: new Date() }
+    })
+      .populate('invitedById', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: invites
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Revoke / cancel a pending invitation
+ * DELETE /api/workspaces/:id/invites/:inviteId
+ */
+const revokeInvite = async (req, res, next) => {
+  try {
+    const { inviteId } = req.params;
+    const invite = await Invite.findOneAndDelete({
+      _id: inviteId,
+      workspaceId: req.workspaceId,
+      used: false
+    });
+
+    if (!invite) {
+      return res.status(404).json({
+        success: false,
+        message: 'Pending invitation not found'
+      });
+    }
+
+    await recordActivity({
+      workspaceId: req.workspaceId,
+      actorId: req.user._id,
+      entityType: 'membership',
+      entityId: invite._id,
+      action: 'invite_revoked',
+      meta: { email: invite.email, role: invite.role }
+    });
+
+    res.json({
+      success: true,
+      message: `Invitation for ${invite.email} revoked`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createWorkspace,
   listWorkspaces,
@@ -388,5 +461,7 @@ module.exports = {
   getMembers,
   updateMemberRole,
   removeMember,
-  createInvite
+  createInvite,
+  listInvites,
+  revokeInvite
 };

@@ -23,6 +23,14 @@ export const workspaceApi = {
   createInvite: (
     workspaceId: string,
     data: { email: string; role: 'admin' | 'member' | 'guest' }
-  ): Promise<{ success: boolean; message: string; data: { devInviteLink?: string; devRawToken?: string } }> =>
+  ): Promise<{ success: boolean; message: string; data: { emailSent?: boolean; devInviteLink?: string; devRawToken?: string } }> =>
     apiClient.post(`/workspaces/${workspaceId}/invites`, data) as any,
+
+  listInvites: (
+    workspaceId: string
+  ): Promise<{ success: boolean; data: { _id: string; email: string; role: Role; expiresAt: string; createdAt: string; invitedById?: { name: string } }[] }> =>
+    apiClient.get(`/workspaces/${workspaceId}/invites`) as any,
+
+  revokeInvite: (workspaceId: string, inviteId: string): Promise<{ success: boolean; message: string }> =>
+    apiClient.delete(`/workspaces/${workspaceId}/invites/${inviteId}`) as any,
 };

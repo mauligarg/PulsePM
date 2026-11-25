@@ -47,6 +47,13 @@ const acceptInvite = async (req, res, next) => {
 
     // Determine target user
     let targetUser = req.user;
+    if (targetUser && targetUser.email.toLowerCase() !== invite.email.toLowerCase()) {
+      return res.status(403).json({
+        success: false,
+        message: `This invitation was sent to ${invite.email}. Please sign in with that email address.`
+      });
+    }
+
     if (!targetUser) {
       // If user is not logged in through auth header, find user by the invited email
       targetUser = await User.findOne({ email: invite.email });

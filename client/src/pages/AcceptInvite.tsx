@@ -9,13 +9,19 @@ export const AcceptInvite: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
-  const { user, initAuth } = useAuthStore();
+  const { user, initAuth, logout } = useAuthStore();
   const { toast } = useToast();
 
   const [details, setDetails] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAccepting, setIsAccepting] = useState(false);
+
+  const redirectParam = encodeURIComponent(`/invites/accept?token=${token || ''}`);
+  const emailParam = details?.email ? `&email=${encodeURIComponent(details.email)}` : '';
+  const emailMismatch =
+    Boolean(user && details?.email) &&
+    user!.email.toLowerCase() !== details.email.toLowerCase();
 
   useEffect(() => {
     if (!token) {
@@ -98,36 +104,53 @@ export const AcceptInvite: React.FC = () => {
               </div>
 
               {user ? (
-                <div>
-                  <p className="text-xs text-slate-500 text-center mb-4">
-                    You are signed in as <strong>{user.email}</strong>.
-                  </p>
-                  <button
-                    onClick={handleAccept}
-                    disabled={isAccepting}
-                    className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  >
-                    {isAccepting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <CheckCircle2 className="w-4 h-4" />
-                    )}
-                    <span>Accept & Enter Workspace</span>
-                  </button>
-                </div>
+                emailMismatch ? (
+                  <div className="space-y-3 text-center">
+                    <p className="text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-3">
+                      You are signed in as <strong>{user.email}</strong>, but this invitation was sent to{' '}
+                      <strong>{details?.email}</strong>.
+                    </p>
+                    <button
+                      onClick={() => {
+                        logout();
+                      }}
+                      className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold"
+                    >
+                      Sign out &amp; Switch Account
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xs text-slate-500 text-center mb-4">
+                      You are signed in as <strong>{user.email}</strong>.
+                    </p>
+                    <button
+                      onClick={handleAccept}
+                      disabled={isAccepting}
+                      className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    >
+                      {isAccepting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      <span>Accept &amp; Enter Workspace</span>
+                    </button>
+                  </div>
+                )
               ) : (
                 <div className="space-y-3">
                   <p className="text-xs text-slate-500 text-center mb-2">
-                    Please log in or create an account to accept this invitation.
+                    Please log in or create an account with <strong>{details?.email}</strong> to accept.
                   </p>
                   <Link
-                    to="/login"
+                    to={`/login?redirect=${redirectParam}${emailParam}`}
                     className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2"
                   >
                     <span>Sign In to Accept</span>
                   </Link>
                   <Link
-                    to="/register"
+                    to={`/register?redirect=${redirectParam}${emailParam}`}
                     className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center"
                   >
                     <span>Create New Account</span>

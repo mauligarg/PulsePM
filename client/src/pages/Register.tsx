@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
@@ -7,10 +7,12 @@ import { useToast } from '../components/common/Toast';
 export const Register: React.FC = () => {
   const { register, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
+  const redirectTo = searchParams.get('redirect') || '/workspaces';
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,8 +24,8 @@ export const Register: React.FC = () => {
 
     const success = await register(name, email, password);
     if (success) {
-      toast('Registration successful! Create your first workspace.');
-      navigate('/workspaces');
+      toast('Registration successful!');
+      navigate(redirectTo);
     } else {
       const errorMsg = useAuthStore.getState().error || 'Registration failed';
       toast(errorMsg, 'error');

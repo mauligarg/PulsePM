@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
@@ -7,9 +7,11 @@ import { useToast } from '../components/common/Toast';
 export const Login: React.FC = () => {
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
-  const [email, setEmail] = useState('');
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,7 +19,7 @@ export const Login: React.FC = () => {
     const success = await login(email, password);
     if (success) {
       toast('Welcome back!');
-      navigate('/dashboard');
+      navigate(redirectTo);
     } else {
       const errorMsg = useAuthStore.getState().error || 'Invalid email or password';
       toast(errorMsg, 'error');
