@@ -37,10 +37,10 @@ export const MyTasks: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in max-w-5xl">
+    <div className="space-y-5 sm:space-y-6 pb-12 animate-in fade-in max-w-5xl">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900 tracking-tight">My Tasks</h1>
+        <h1 className="text-fluid-page-title font-bold text-slate-900 tracking-tight">My Tasks</h1>
         <p className="text-xs text-slate-500">
           All tasks assigned to you across projects in {activeWorkspace?.name}
         </p>
@@ -51,7 +51,7 @@ export const MyTasks: React.FC = () => {
           <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
         </div>
       ) : tasks.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 sm:p-12 text-center border border-slate-200">
           <CheckSquare className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-900">No tasks assigned to you</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
@@ -71,23 +71,23 @@ export const MyTasks: React.FC = () => {
                 <div
                   key={task._id}
                   onClick={() => setSelectedTaskId(task._id)}
-                  className="p-4 hover:bg-slate-50/80 cursor-pointer transition-colors flex items-center justify-between gap-4 group"
+                  className="p-3.5 sm:p-4 hover:bg-slate-50/80 cursor-pointer transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600 shrink-0">
                       {task.projectId && typeof task.projectId === 'object' ? task.projectId.key : 'PRJ'}
                     </span>
-                    <div className="truncate">
+                    <div className="min-w-0 truncate">
                       <h4 className="text-xs font-semibold text-slate-900 group-hover:text-brand-600 transition-colors truncate">
                         {task.title}
                       </h4>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
-                        <span>Project: {task.projectId && typeof task.projectId === 'object' ? task.projectId.name : 'Unknown'}</span>
+                        <span className="truncate">Project: {task.projectId && typeof task.projectId === 'object' ? task.projectId.name : 'Unknown'}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                     {task.dueDate && (
                       <span
                         className={`text-xs flex items-center gap-1 font-medium ${

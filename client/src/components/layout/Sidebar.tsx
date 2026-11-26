@@ -13,10 +13,21 @@ import {
   ShieldAlert,
   LogOut,
   Sparkles,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
-export const Sidebar: React.FC<{ onCreateWorkspace: () => void }> = ({ onCreateWorkspace }) => {
+interface SidebarProps {
+  onCreateWorkspace: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  onCreateWorkspace,
+  isOpen = false,
+  onClose,
+}) => {
   const { user, activeWorkspace, role, workspaces, switchWorkspace, logout } = useAuthStore();
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
 
@@ -40,17 +51,41 @@ export const Sidebar: React.FC<{ onCreateWorkspace: () => void }> = ({ onCreateW
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 flex flex-col h-screen shrink-0 select-none">
-      {/* Brand & Workspace Switcher */}
-      <div className="p-4 border-b border-slate-200 relative">
-        <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-            <Sparkles className="w-4 h-4" />
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-[1px] z-40 lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[min(17.5rem,85vw)] lg:w-64 lg:static lg:translate-x-0 bg-white border-r border-slate-200 flex flex-col h-dvh lg:h-screen shrink-0 select-none transition-transform duration-200 ease-out ${
+          isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand & Workspace Switcher */}
+        <div className="p-4 border-b border-slate-200 relative">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                PulsePM
+              </span>
+            </div>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close navigation menu"
+                className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
-          <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-            PulsePM
-          </span>
-        </div>
 
         {/* Workspace selector dropdown trigger */}
         <button
@@ -123,6 +158,7 @@ export const Sidebar: React.FC<{ onCreateWorkspace: () => void }> = ({ onCreateW
             <RouterNavLink
               key={item.path}
               to={item.path}
+              onClick={() => onClose?.()}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
@@ -174,5 +210,6 @@ export const Sidebar: React.FC<{ onCreateWorkspace: () => void }> = ({ onCreateW
         </div>
       </div>
     </aside>
+    </>
   );
 };

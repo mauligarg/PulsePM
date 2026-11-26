@@ -110,7 +110,7 @@ export const ActivityFeed: React.FC<ActivityFeedProps> = ({ activities }) => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[380px]">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[320px] sm:h-[350px] lg:h-[380px] min-w-0">
       <div className="mb-4">
         <h3 className="text-sm font-bold text-slate-900">Live Workspace Activity</h3>
         <p className="text-xs text-slate-400">Audit trail of real-time tenant events</p>

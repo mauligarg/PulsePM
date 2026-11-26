@@ -86,9 +86,9 @@ export const Projects: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-in fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Projects</h1>
+          <h1 className="text-fluid-page-title font-bold text-slate-900 tracking-tight">Projects</h1>
           <p className="text-xs text-slate-500">
             Organize work across your teams in {activeWorkspace?.name}
           </p>
@@ -97,7 +97,7 @@ export const Projects: React.FC = () => {
         {canCreate && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-brand-500/25 transition-all"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-brand-500/25 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Create Project</span>
@@ -111,7 +111,7 @@ export const Projects: React.FC = () => {
           <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
         </div>
       ) : projects.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200">
+        <div className="bg-white rounded-2xl p-6 sm:p-12 text-center border border-slate-200">
           <FolderKanban className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-slate-900">No projects found</h3>
           <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
@@ -127,7 +127,7 @@ export const Projects: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
           {projects.map((p) => (
             <div
               key={p._id}

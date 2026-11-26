@@ -44,19 +44,19 @@ export const WorkspaceSelect: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-slate-100 via-white to-slate-100">
+    <div className="min-h-dvh w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-slate-100 via-white to-slate-100">
       <div className="max-w-lg w-full">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-lg shadow-brand-500/25 mb-3">
             <Building2 className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Select or Create Workspace</h1>
+          <h1 className="text-fluid-page-title font-black text-slate-900 tracking-tight">Select or Create Workspace</h1>
           <p className="text-xs text-slate-500 mt-1">Hello {user?.name}, choose an organization to enter</p>
         </div>
 
         {/* Existing workspaces list */}
         {workspaces.length > 0 && (
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xl shadow-slate-200/50 mb-6">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xl shadow-slate-200/50 mb-5 sm:mb-6">
             <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
               Your Existing Workspaces
             </h2>
@@ -86,7 +86,7 @@ export const WorkspaceSelect: React.FC = () => {
         )}
 
         {/* Create New Workspace */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xl shadow-slate-200/50">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-xl shadow-slate-200/50">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
             Create a New Workspace
           </h2>

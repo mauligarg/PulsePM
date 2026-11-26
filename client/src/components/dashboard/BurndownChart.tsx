@@ -20,27 +20,27 @@ interface BurndownChartProps {
 
 export const BurndownChart: React.FC<BurndownChartProps> = ({ data }) => {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div>
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm min-w-0">
+      <div className="flex items-start sm:items-center justify-between gap-2 mb-4">
+        <div className="min-w-0">
           <h3 className="text-sm font-bold text-slate-900">Sprint Burndown</h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 truncate">
             {data?.sprint ? `${data.sprint.name} (${data.totalEstimate}h total scope)` : 'No active sprint found'}
           </p>
         </div>
         {data?.sprint && (
-          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 shrink-0">
             {data.sprint.status}
           </span>
         )}
       </div>
 
       {!data?.series || data.series.length === 0 ? (
-        <div className="h-56 flex items-center justify-center text-xs text-slate-400 italic">
+        <div className="h-52 sm:h-56 flex items-center justify-center text-xs text-slate-400 italic text-center px-4">
           Start a sprint with estimated tasks to view burndown progress.
         </div>
       ) : (
-        <div className="h-56 w-full">
+        <div className="h-52 sm:h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data.series} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />

@@ -47,15 +47,15 @@ export const StatusChart: React.FC<StatusChartProps> = ({ statusCounts, priority
   const currentData = chartMode === 'status' ? statusData : priorityData;
 
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[380px]">
-      <div className="flex items-center justify-between mb-4">
-        <div>
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[310px] sm:h-[350px] lg:h-[380px] min-w-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="min-w-0">
           <h3 className="text-sm font-bold text-slate-900">Task Distribution</h3>
-          <p className="text-xs text-slate-400">Live breakdown fetched from MongoDB REST API</p>
+          <p className="text-xs text-slate-400 truncate">Live breakdown fetched from MongoDB REST API</p>
         </div>
 
         {/* Toggle Mode */}
-        <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+        <div className="flex items-center self-start sm:self-auto p-1 bg-slate-100 rounded-xl text-xs font-semibold shrink-0">
           <button
             onClick={() => setChartMode('status')}
             className={`px-3 py-1 rounded-lg transition-all ${

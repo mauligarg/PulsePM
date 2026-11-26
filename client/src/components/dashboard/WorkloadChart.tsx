@@ -22,18 +22,18 @@ interface WorkloadChartProps {
 
 export const WorkloadChart: React.FC<WorkloadChartProps> = ({ data }) => {
   return (
-    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm min-w-0">
       <div className="mb-4">
         <h3 className="text-sm font-bold text-slate-900">Team Workload Distribution</h3>
         <p className="text-xs text-slate-400">Open estimated hours vs. logged hours per member</p>
       </div>
 
       {!data || data.length === 0 ? (
-        <div className="h-56 flex items-center justify-center text-xs text-slate-400 italic">
+        <div className="h-52 sm:h-56 flex items-center justify-center text-xs text-slate-400 italic text-center px-4">
           No workload data available.
         </div>
       ) : (
-        <div className="h-56 w-full">
+        <div className="h-52 sm:h-56 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 5, right: 10, left: -15, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />

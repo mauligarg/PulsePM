@@ -40,7 +40,7 @@ export const KanbanColumn: React.FC<KanbanColumnProps> = ({
   const { dot, badge } = statusColors[id] || statusColors.todo;
 
   return (
-    <div className="flex flex-col w-72 shrink-0 bg-slate-100/70 rounded-2xl border border-slate-200/80 p-3 max-h-full">
+    <div className="flex flex-col w-[min(18rem,calc(100vw-2.25rem))] sm:w-72 shrink-0 bg-slate-100/70 rounded-2xl border border-slate-200/80 p-3 max-h-full">
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">

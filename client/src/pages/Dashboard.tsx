@@ -70,27 +70,27 @@ export const Dashboard: React.FC = () => {
       : 0;
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in">
+    <div className="space-y-4 sm:space-y-6 pb-8 sm:pb-12 animate-in fade-in">
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-brand-900 to-indigo-900 rounded-2xl p-6 text-white shadow-lg shadow-brand-950/20">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-brand-900 to-indigo-900 rounded-2xl p-4 sm:p-6 text-white shadow-lg shadow-brand-950/20">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
             <span className="text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full bg-white/20 text-brand-100">
               Workspace Overview
             </span>
-            <span className="text-xs text-brand-200">Tenant: {activeWorkspace?.name}</span>
+            <span className="text-xs text-brand-200 truncate">Tenant: {activeWorkspace?.name}</span>
           </div>
-          <h2 className="text-xl font-bold tracking-tight">Welcome back, {user?.name}!</h2>
+          <h2 className="text-fluid-page-title font-bold tracking-tight">Welcome back, {user?.name}!</h2>
           <p className="text-xs text-brand-200 mt-1 max-w-lg">
             Here is your live project pulse. All metrics and charts below are fetched dynamically from
             your multi-tenant REST endpoints.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <Link
             to="/board"
-            className="flex items-center gap-2 px-4 py-2 bg-white text-brand-900 hover:bg-brand-50 rounded-xl text-xs font-bold transition-all shadow-md shrink-0"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 sm:py-2 bg-white text-brand-900 hover:bg-brand-50 rounded-xl text-xs font-bold transition-all shadow-md shrink-0"
           >
             <span>Open Kanban Board</span>
             <ArrowRight className="w-4 h-4" />
@@ -99,7 +99,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Row 1: KPI Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           label="Total Tasks"
           value={data.statusCounts.total}
@@ -131,29 +131,35 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Row 2: Charts and Activity Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="lg:col-span-2 min-w-0">
           <StatusChart
             statusCounts={data.statusCounts}
             priorityCounts={data.priorityCounts}
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <ActivityFeed activities={data.recentActivity} />
         </div>
       </div>
 
       {/* Row 2.5: Agile Aggregation Reports (Burndown, Velocity, Workload) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <BurndownChart data={burndown} />
-        <VelocityChart data={velocity} />
-        <WorkloadChart data={workload} />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="min-w-0">
+          <BurndownChart data={burndown} />
+        </div>
+        <div className="min-w-0">
+          <VelocityChart data={velocity} />
+        </div>
+        <div className="min-w-0 md:col-span-2 xl:col-span-1">
+          <WorkloadChart data={workload} />
+        </div>
       </div>
 
       {/* Row 3: Actionable Lists (Overdue Tasks & My Open Tasks) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Overdue Tasks */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -199,7 +205,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* My Open Tasks */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm min-w-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">

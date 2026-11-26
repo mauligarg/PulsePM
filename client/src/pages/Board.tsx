@@ -58,26 +58,26 @@ export const Board: React.FC = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-6.5rem)] flex flex-col space-y-4 animate-in fade-in">
+    <div className="min-h-[calc(100dvh-7.5rem)] lg:h-[calc(100vh-6.5rem)] flex flex-col space-y-3 sm:space-y-4 animate-in fade-in">
       {/* Board Controls & Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 shrink-0">
         {/* Left: Project title & View toggles */}
-        <div className="flex items-center gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 shrink-0">
                 {currentProject.key}
               </span>
-              <h1 className="text-base font-bold text-slate-900 tracking-tight">
+              <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">
                 {currentProject.name}
               </h1>
             </div>
           </div>
 
-          <div className="h-5 w-[1px] bg-slate-200 hidden sm:block" />
+          <div className="h-5 w-[1px] bg-slate-200 hidden sm:block shrink-0" />
 
           {/* View Mode Toggle: Kanban vs List */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+          <div className="flex flex-wrap items-center p-1 bg-slate-100 rounded-xl text-xs font-semibold w-full sm:w-auto">
             <button
               onClick={() => setViewMode('board')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
@@ -115,12 +115,12 @@ export const Board: React.FC = () => {
         </div>
 
         {/* Right: Filters & Action */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3">
           {/* Sprint filter */}
           <select
             value={filterSprint}
             onChange={(e) => setFilterSprint(e.target.value)}
-            className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:bg-white"
+            className="w-full sm:w-auto text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5 focus:outline-none focus:bg-white"
           >
             <option value="">All Sprints</option>
             <option value="backlog">Backlog Only</option>
@@ -134,7 +134,7 @@ export const Board: React.FC = () => {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:bg-white"
+            className="w-full sm:w-auto text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5 focus:outline-none focus:bg-white"
           >
             <option value="">All Statuses</option>
             <option value="backlog">Backlog</option>
@@ -148,7 +148,7 @@ export const Board: React.FC = () => {
           <select
             value={filterAssignee}
             onChange={(e) => setFilterAssignee(e.target.value)}
-            className="text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:bg-white"
+            className="w-full sm:w-auto text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5 focus:outline-none focus:bg-white"
           >
             <option value="">All Assignees</option>
             {members.map((m) => (
@@ -161,7 +161,7 @@ export const Board: React.FC = () => {
           {!isGuest && (
             <button
               onClick={() => setIsCreateOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition-all shadow-brand-500/25"
+              className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition-all shadow-brand-500/25"
             >
               <Plus className="w-4 h-4" />
               <span>Add Task</span>

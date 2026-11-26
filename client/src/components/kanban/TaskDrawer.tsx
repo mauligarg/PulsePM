@@ -265,7 +265,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white w-full max-w-xl h-full shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-200">
         {/* Header */}
-        <div className="p-4 px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <div className="p-3.5 px-4 sm:p-4 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="font-semibold text-brand-600 uppercase tracking-wider">
               {task?.projectId && typeof task.projectId === 'object' ? task.projectId.key : 'TASK'}
@@ -299,7 +299,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
         </div>
 
         {/* Drawer Tabs */}
-        <div className="px-6 border-b border-slate-200 flex items-center gap-4 bg-white text-xs font-semibold">
+        <div className="px-4 sm:px-6 border-b border-slate-200 flex items-center gap-4 bg-white text-xs font-semibold overflow-x-auto whitespace-nowrap shrink-0">
           <button
             onClick={() => setActiveTab('details')}
             className={`py-2.5 border-b-2 transition-colors ${
@@ -340,7 +340,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
             <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
           </div>
         ) : activeTab === 'timelogs' ? (
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
               <div>
                 <div className="text-xs font-semibold text-slate-500">Total Logged vs Estimate</div>
@@ -354,7 +354,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
             {!isGuest && (
               <form onSubmit={handleAddTimeLog} className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
                 <h5 className="text-xs font-bold text-slate-800">Log Time</h5>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-500 block mb-1">Hours</label>
                     <input
@@ -453,7 +453,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
             )}
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
             {/* Title (Inline editable) */}
             <div>
               <input
@@ -462,12 +462,12 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => handleSaveField({ title })}
-                className="w-full text-lg font-bold text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-2 py-1 focus:outline-none transition-all disabled:hover:border-transparent"
+                className="w-full text-base sm:text-lg font-bold text-slate-900 bg-transparent border border-transparent hover:border-slate-200 focus:border-brand-500 focus:bg-white rounded-lg px-2 py-1 focus:outline-none transition-all disabled:hover:border-transparent"
               />
             </div>
 
             {/* Properties Grid */}
-            <div className="grid grid-cols-2 gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 bg-slate-50/80 p-3.5 sm:p-4 rounded-xl border border-slate-200 text-xs">
               {/* Status */}
               <div>
                 <label className="text-[11px] font-semibold text-slate-500 block mb-1">Status</label>

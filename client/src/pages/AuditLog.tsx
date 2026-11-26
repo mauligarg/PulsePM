@@ -74,7 +74,7 @@ export const AuditLog: React.FC = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-3">
+      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 mr-1">
           <Filter className="w-3.5 h-3.5" />
           <span>Filters:</span>
@@ -83,7 +83,7 @@ export const AuditLog: React.FC = () => {
         <select
           value={actorId}
           onChange={(e) => setActorId(e.target.value)}
-          className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+          className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5"
         >
           <option value="">All Actors</option>
           {members.map((m) => (
@@ -96,7 +96,7 @@ export const AuditLog: React.FC = () => {
         <select
           value={entityType}
           onChange={(e) => setEntityType(e.target.value)}
-          className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+          className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5"
         >
           <option value="">All Entities</option>
           <option value="workspace">Workspace</option>
@@ -113,14 +113,14 @@ export const AuditLog: React.FC = () => {
           type="date"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+          className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5"
           title="From date"
         />
         <input
           type="date"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5"
+          className="w-full sm:w-auto text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5"
           title="To date"
         />
 

@@ -157,24 +157,24 @@ export const BacklogView: React.FC<{ onAddTask: (defaultStatus?: 'backlog' | 'to
   const renderTaskRow = (task: Task, currentSprintId?: string) => (
     <div
       key={task._id}
-      className="flex items-center justify-between gap-3 p-3 bg-white border border-slate-200/80 rounded-xl hover:border-brand-300 transition-colors"
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 bg-white border border-slate-200/80 rounded-xl hover:border-brand-300 transition-colors"
     >
       <div
         onClick={() => setSelectedTaskId(task._id)}
-        className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer"
+        className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 cursor-pointer"
       >
-        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${statusBadge[task.status]}`}>
+        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded shrink-0 ${statusBadge[task.status]}`}>
           {task.status.replace('_', ' ')}
         </span>
         <span className="text-xs font-semibold text-slate-900 truncate hover:text-brand-600">
           {task.title}
         </span>
-        <span className={`text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded ${priorityColors[task.priority]}`}>
+        <span className={`text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded shrink-0 ${priorityColors[task.priority]}`}>
           {task.priority}
         </span>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center justify-end sm:justify-start gap-2.5 sm:gap-3 shrink-0">
         {task.estimateHours > 0 && (
           <span className="text-[11px] text-slate-500 flex items-center gap-1">
             <Clock className="w-3 h-3" /> {task.estimateHours}h
@@ -210,7 +210,7 @@ export const BacklogView: React.FC<{ onAddTask: (defaultStatus?: 'backlog' | 'to
   return (
     <div className="space-y-6 pb-12 overflow-y-auto h-full pr-1">
       {/* Header action */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
             <Layers className="w-4 h-4 text-brand-600" />
@@ -223,7 +223,7 @@ export const BacklogView: React.FC<{ onAddTask: (defaultStatus?: 'backlog' | 'to
         {!isGuest && (
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm"
+            className="w-full sm:w-auto justify-center flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Create Sprint</span>

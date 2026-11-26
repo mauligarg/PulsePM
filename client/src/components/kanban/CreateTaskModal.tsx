@@ -110,7 +110,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-4 max-h-[85dvh] overflow-y-auto">
           {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1.5">
@@ -139,7 +139,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </div>
 
           {/* Status & Priority Row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Status</label>
               <select
@@ -171,7 +171,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </div>
 
           {/* Assignee & Due Date Row */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Assignee</label>
               <select
@@ -201,7 +201,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
           </div>
 
           {/* Labels & Estimate Hours */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">Labels</label>
               <input

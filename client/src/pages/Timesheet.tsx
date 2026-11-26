@@ -93,12 +93,12 @@ export const Timesheet: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in max-w-6xl">
+    <div className="space-y-5 sm:space-y-6 pb-12 animate-in fade-in max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <Clock className="w-5 h-5 text-brand-600" />
+          <h1 className="text-fluid-page-title font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <Clock className="w-5 h-5 text-brand-600 shrink-0" />
             <span>Weekly Timesheet</span>
           </h1>
           <p className="text-xs text-slate-500">
@@ -106,12 +106,12 @@ export const Timesheet: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2.5 sm:gap-3">
           {canViewOthers && members.length > 0 && (
             <select
               value={selectedUserId}
               onChange={(e) => setSelectedUserId(e.target.value)}
-              className="text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2"
+              className="w-full sm:w-auto text-xs font-medium bg-white border border-slate-200 rounded-xl px-3 py-2"
             >
               <option value="">My Timesheet ({user?.name})</option>
               {members.map((m) => (
@@ -122,7 +122,7 @@ export const Timesheet: React.FC = () => {
             </select>
           )}
 
-          <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 gap-1">
+          <div className="flex items-center justify-between sm:justify-start bg-white border border-slate-200 rounded-xl p-1 gap-1">
             <button
               onClick={() => shiftWeek(-7)}
               className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600"

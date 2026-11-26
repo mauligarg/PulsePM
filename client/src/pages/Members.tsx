@@ -3,8 +3,6 @@ import {
   UserPlus,
   Trash2,
   CheckCircle2,
-  Copy,
-  ExternalLink,
   Loader2,
   X,
 } from 'lucide-react';
@@ -115,17 +113,12 @@ export const Members: React.FC = () => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast('Link copied to clipboard!');
-  };
-
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in max-w-5xl">
+    <div className="space-y-5 sm:space-y-6 pb-12 animate-in fade-in max-w-5xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">Team Members</h1>
+          <h1 className="text-fluid-page-title font-bold text-slate-900 tracking-tight">Team Members</h1>
           <p className="text-xs text-slate-500">
             Manage collaborators and RBAC roles in {activeWorkspace?.name}
           </p>
@@ -137,7 +130,7 @@ export const Members: React.FC = () => {
               setGeneratedInviteLink(null);
               setIsInviteOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-brand-500/25 transition-all"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-brand-500/25 transition-all"
           >
             <UserPlus className="w-4 h-4" />
             <span>Invite Member</span>
@@ -337,7 +330,7 @@ export const Members: React.FC = () => {
                 )}
 
                 <div className="flex items-center gap-2.5 pt-1">
-                  <button
+                  {/* <button
                     onClick={() => copyToClipboard(generatedInviteLink)}
                     className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
@@ -354,7 +347,7 @@ export const Members: React.FC = () => {
                       <span>Open</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                  )}
+                  )} */}
                   <button
                     onClick={() => {
                       setIsInviteOpen(false);

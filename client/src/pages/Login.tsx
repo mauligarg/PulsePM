@@ -30,19 +30,19 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-slate-100 via-white to-slate-100">
+    <div className="min-h-dvh w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-slate-100 via-white to-slate-100">
       <div className="max-w-md w-full">
         {/* Header Branding */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-lg shadow-brand-500/25 mb-3">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">PulsePM SaaS</h1>
+          <h1 className="text-fluid-page-title font-black text-slate-900 tracking-tight">PulsePM SaaS</h1>
           <p className="text-xs text-slate-500 mt-1">Multi-Tenant Project Management & Collaboration</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50">
+        <div className="bg-white rounded-2xl p-5 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50">
           <h2 className="text-base font-bold text-slate-900 mb-1">Sign in to your account</h2>
           <p className="text-xs text-slate-500 mb-6">Enter your workspace credentials to continue</p>
 
