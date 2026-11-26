@@ -81,10 +81,10 @@ export const Dashboard: React.FC = () => {
             <span className="text-xs text-brand-200 truncate">Tenant: {activeWorkspace?.name}</span>
           </div>
           <h2 className="text-fluid-page-title font-bold tracking-tight">Welcome back, {user?.name}!</h2>
-          <p className="text-xs text-brand-200 mt-1 max-w-lg">
+          {/* <p className="text-xs text-brand-200 mt-1 max-w-lg">
             Here is your live project pulse. All metrics and charts below are fetched dynamically from
             your multi-tenant REST endpoints.
-          </p>
+          </p> */}
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
