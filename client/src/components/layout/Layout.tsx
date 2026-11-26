@@ -16,6 +16,7 @@ export const Layout: React.FC = () => {
 
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     initAuth();
@@ -51,8 +52,6 @@ export const Layout: React.FC = () => {
       </div>
     );
   }
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="flex min-h-dvh lg:h-screen w-full overflow-x-clip lg:overflow-hidden bg-slate-50">
