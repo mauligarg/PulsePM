@@ -22,6 +22,7 @@ import { workspaceApi } from '../../api/workspaces';
 import { useAuthStore } from '../../store/authStore';
 import { useBoardStore } from '../../store/boardStore';
 import { useToast } from '../common/Toast';
+import { formatHoursMinutes } from '../../utils/time';
 
 interface TaskDrawerProps {
   taskId: string;
@@ -59,6 +60,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
   const [timeLogs, setTimeLogs] = useState<TimeLog[]>([]);
   const [totalLoggedHours, setTotalLoggedHours] = useState(0);
   const [logHours, setLogHours] = useState('1');
+  const [logMinutes, setLogMinutes] = useState('0');
   const [logDate, setLogDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [logNote, setLogNote] = useState('');
   const [taskHistory, setTaskHistory] = useState<Activity[]>([]);
@@ -226,15 +228,22 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
 
   const handleAddTimeLog = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!logHours || Number(logHours) <= 0 || isGuest) return;
+    if (isGuest) return;
+    const h = Math.max(0, Number(logHours) || 0);
+    const m = Math.max(0, Number(logMinutes) || 0);
+    const decimalHours = Math.round((h + m / 60) * 100) / 100;
+    if (decimalHours < 0.1 || decimalHours > 24) {
+      toast('Please log between 6 minutes (0.1h) and 24 hours', 'error');
+      return;
+    }
     try {
       const res = await timeLogApi.createOnTask(taskId, {
-        hours: Number(logHours),
+        hours: decimalHours,
         date: logDate,
         note: logNote.trim(),
       });
       setTimeLogs((prev) => [res.data, ...prev]);
-      setTotalLoggedHours((prev) => Math.round((prev + Number(logHours)) * 100) / 100);
+      setTotalLoggedHours((prev) => Math.round((prev + decimalHours) * 100) / 100);
       setLogNote('');
       toast('Time logged');
     } catch (err: any) {
@@ -324,7 +333,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
-            Time Logs ({totalLoggedHours}h)
+            Time Logs ({formatHoursMinutes(totalLoggedHours)})
           </button>
           <button
             onClick={() => setActiveTab('history')}
@@ -350,7 +359,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
               <div>
                 <div className="text-xs font-semibold text-slate-500">Total Logged vs Estimate</div>
                 <div className="text-lg font-bold text-slate-900">
-                  {totalLoggedHours}h <span className="text-xs font-normal text-slate-500">/ {task.estimateHours || 0}h est.</span>
+                  {formatHoursMinutes(totalLoggedHours)}{' '}
+                  <span className="text-xs font-normal text-slate-500">
+                    ({totalLoggedHours}h) / {task.estimateHours || 0}h est.
+                  </span>
                 </div>
               </div>
               <Clock className="w-6 h-6 text-brand-600" />
@@ -359,17 +371,28 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
             {!isGuest && (
               <form onSubmit={handleAddTimeLog} className="bg-white p-4 rounded-xl border border-slate-200 space-y-3">
                 <h5 className="text-xs font-bold text-slate-800">Log Time</h5>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-500 block mb-1">Hours</label>
                     <input
                       type="number"
-                      step="0.25"
-                      min="0.1"
+                      step="1"
+                      min="0"
                       max="24"
-                      required
                       value={logHours}
                       onChange={(e) => setLogHours(e.target.value)}
+                      className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-slate-500 block mb-1">Minutes</label>
+                    <input
+                      type="number"
+                      step="5"
+                      min="0"
+                      max="59"
+                      value={logMinutes}
+                      onChange={(e) => setLogMinutes(e.target.value)}
                       className="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg"
                     />
                   </div>
@@ -410,7 +433,10 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
                     <div key={log._id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200/80 text-xs">
                       <div>
                         <div className="font-semibold text-slate-900">
-                          {log.userId?.name || 'Member'} · <span className="text-brand-600">{log.hours}h</span>
+                          {log.userId?.name || 'Member'} ·{' '}
+                          <span className="text-brand-600">
+                            {formatHoursMinutes(log.hours)} ({log.hours}h)
+                          </span>
                         </div>
                         {log.note && <p className="text-slate-600 mt-0.5">{log.note}</p>}
                         <span className="text-[10px] text-slate-400">{new Date(log.date).toLocaleDateString()}</span>
