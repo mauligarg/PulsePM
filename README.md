@@ -193,8 +193,7 @@ Password for all pre-seeded evaluation accounts: `password123`
 | `CLIENT_URL` | `server/.env` | Allowed CORS origin (e.g. `https://app.vercel.app`) |
 | `REDIS_URL` | `server/.env` | Upstash Redis `rediss://` URL (empty = in-memory fallback) |
 | `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | `server/.env` | Cloudinary upload credentials (empty = local `/uploads` fallback) |
-| `GMAIL_CLIENT_ID` / `CLIENT_SECRET` / `REFRESH_TOKEN` / `USER` | `server/.env` | Google Gmail API OAuth2 credentials (HTTPS port 443; required on Render Free tier) |
-| `SMTP_HOST` / `PORT` / `USER` / `PASS` / `FROM` | `server/.env` | Optional local-dev-only Nodemailer SMTP fallback |
+| `BREVO_API_KEY` / `EMAIL_FROM` | `server/.env` | Brevo HTTPS email API key & verified sender email (works on Render Free tier) |
 | `SENTRY_DSN` / `LOG_LEVEL` | `server/.env` | Sentry DSN & Pino log level |
 | `VITE_API_URL` / `VITE_SOCKET_URL` / `VITE_SENTRY_DSN` | `client/.env` | Frontend API, WebSocket & Sentry endpoints |
 

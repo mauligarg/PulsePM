@@ -29,13 +29,9 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: GMAIL_CLIENT_ID
+      - key: BREVO_API_KEY
         sync: false
-      - key: GMAIL_CLIENT_SECRET
-        sync: false
-      - key: GMAIL_REFRESH_TOKEN
-        sync: false
-      - key: GMAIL_USER
+      - key: EMAIL_FROM
         sync: false
       - key: SENTRY_DSN
         sync: false
