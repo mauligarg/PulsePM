@@ -19,12 +19,25 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: 6,
+      minlength: 8,
       select: false // Exclude from query results by default
     },
     avatar: {
       type: String,
       default: ''
+    },
+    resetPasswordTokenHash: {
+      type: String,
+      select: false,
+      index: true
+    },
+    resetPasswordExpiresAt: {
+      type: Date,
+      select: false
+    },
+    passwordChangedAt: {
+      type: Date,
+      select: false
     }
   },
   {
@@ -49,10 +62,13 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Safe JSON serialization (never leak password)
+// Safe JSON serialization (never leak password or security tokens)
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.resetPasswordTokenHash;
+  delete obj.resetPasswordExpiresAt;
+  delete obj.passwordChangedAt;
   delete obj.__v;
   return obj;
 };

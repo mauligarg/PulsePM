@@ -4,6 +4,8 @@ import { Layout } from './components/layout/Layout';
 import { ToastProvider } from './components/common/Toast';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { WorkspaceSelect } from './pages/WorkspaceSelect';
 import { Dashboard } from './pages/Dashboard';
 import { Board } from './pages/Board';
@@ -22,6 +24,8 @@ export const App: React.FC = () => {
           {/* Public Authentication & Invites */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/workspaces" element={<WorkspaceSelect />} />
           <Route path="/invites/accept" element={<AcceptInvite />} />
 

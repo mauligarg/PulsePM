@@ -14,8 +14,10 @@ import {
   LogOut,
   Sparkles,
   X,
+  KeyRound,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { ChangePasswordModal } from '../auth/ChangePasswordModal';
 
 interface SidebarProps {
   onCreateWorkspace: () => void;
@@ -30,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { user, activeWorkspace, role, workspaces, switchWorkspace, logout } = useAuthStore();
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -188,13 +191,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="text-[10px] text-slate-500 truncate">{user?.email}</div>
             </div>
           </div>
-          <button
-            onClick={logout}
-            title="Log out"
-            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsChangePasswordOpen(true)}
+              title="Change password"
+              aria-label="Change password"
+              className="p-1.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              title="Log out"
+              aria-label="Log out"
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* RBAC Role Pill Indicator */}
@@ -210,6 +226,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
     </aside>
+    <ChangePasswordModal
+      isOpen={isChangePasswordOpen}
+      onClose={() => setIsChangePasswordOpen(false)}
+    />
     </>
   );
 };

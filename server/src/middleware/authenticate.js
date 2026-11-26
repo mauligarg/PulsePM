@@ -27,12 +27,23 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    const user = await User.findById(decoded.userId);
+    const user = await User.findById(decoded.userId).select('+passwordChangedAt');
     if (!user) {
       return res.status(401).json({
         success: false,
         message: 'User belonging to this token no longer exists'
       });
+    }
+
+    if (user.passwordChangedAt && decoded.iat) {
+      const changedAtMs = user.passwordChangedAt.getTime();
+      const issuedAtMs = decoded.iat * 1000;
+      if (issuedAtMs < changedAtMs - 1000) {
+        return res.status(401).json({
+          success: false,
+          message: 'Session expired after password change. Please sign in again.'
+        });
+      }
     }
 
     req.user = user;

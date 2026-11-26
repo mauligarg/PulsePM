@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
+import { PasswordInput } from '../components/auth/PasswordInput';
+import { PasswordRequirements } from '../components/auth/PasswordRequirements';
+import { evaluatePassword } from '../utils/password';
 
 export const Register: React.FC = () => {
   const { register } = useAuthStore();
@@ -14,12 +17,28 @@ export const Register: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState(searchParams.get('email') || '');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { isValid: isPasswordStrong } = evaluatePassword(password);
+  const passwordsMatch = password === confirmPassword;
+  const showMismatchError = confirmPassword.length > 0 && !passwordsMatch;
+  const canSubmit =
+    Boolean(name.trim()) &&
+    Boolean(email.trim()) &&
+    isPasswordStrong &&
+    confirmPassword.length > 0 &&
+    passwordsMatch &&
+    !isSubmitting;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      toast('Password must be at least 6 characters', 'error');
+    if (!isPasswordStrong) {
+      toast('Please satisfy all password requirements', 'error');
+      return;
+    }
+    if (!passwordsMatch) {
+      toast('Passwords do not match', 'error');
       return;
     }
 
@@ -51,46 +70,70 @@ export const Register: React.FC = () => {
         <div className="bg-white rounded-2xl p-5 sm:p-8 border border-slate-200/80 shadow-xl shadow-slate-200/50">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name</label>
+              <label htmlFor="register-name" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Full Name
+              </label>
               <input
+                id="register-name"
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Dhruv Verma"
+                autoComplete="name"
                 className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address</label>
+              <label htmlFor="register-email" className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Email Address
+              </label>
               <input
+                id="register-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="dhruv@example.com"
+                autoComplete="email"
                 className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
-              <input
-                type="password"
+              <PasswordInput
+                id="register-password"
+                label="Password"
                 required
-                minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                placeholder="Create a strong password"
+                autoComplete="new-password"
               />
+              <PasswordRequirements password={password} />
+            </div>
+
+            <div>
+              <PasswordInput
+                id="register-confirm-password"
+                label="Confirm Password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+                error={showMismatchError ? 'Passwords do not match' : undefined}
+              />
+              {confirmPassword.length > 0 && passwordsMatch && (
+                <p className="mt-1.5 text-[11px] font-medium text-emerald-600">Passwords match</p>
+              )}
             </div>
 
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              disabled={!canSubmit}
+              className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
               <span>Get Started</span>
