@@ -10,8 +10,8 @@ module.exports = {
   JWT_SECRET: process.env.JWT_SECRET || 'supersecret_jwt_key_for_multitenant_saas_evaluation_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
-  BREVO_API_KEY: process.env.BREVO_API_KEY || '',
-  EMAIL_FROM: process.env.EMAIL_FROM || 'mauligarg0727@gmail.com',
+  BREVO_API_KEY: (process.env.BREVO_API_KEY || '').trim(),
+  EMAIL_FROM: (process.env.EMAIL_FROM || 'mauligarg0727@gmail.com').trim(),
   REDIS_URL: process.env.REDIS_URL || '',
   CLOUDINARY: {
     CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
