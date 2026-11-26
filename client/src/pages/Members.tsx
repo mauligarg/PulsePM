@@ -306,59 +306,67 @@ export const Members: React.FC = () => {
             </div>
 
             {generatedInviteLink ? (
-              <div className="p-6 space-y-4">
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="p-6 space-y-5">
+                <div className="text-center space-y-2.5 pt-1">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
                   <div>
-                    <h4 className="text-xs font-bold text-emerald-900">
-                      {inviteEmailSent ? 'Invitation Email Sent!' : 'Invitation Link Ready!'}
+                    <h4 className="text-base font-bold text-slate-900">
+                      {inviteEmailSent ? 'Invitation Email Sent!' : 'Invitation Link Ready'}
                     </h4>
-                    <p className="text-xs text-emerald-700 mt-1">
-                      {inviteEmailSent
-                        ? `An invitation email was delivered to ${inviteEmail}.`
-                        : 'Copy and share the single-use 48h invite link below:'}
+                    <p className="text-xs text-slate-500 mt-1">
+                      {inviteEmailSent ? (
+                        <>
+                          Sent to <span className="font-semibold text-slate-800">{inviteEmail}</span> as{' '}
+                          <span className="inline-block uppercase text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200">
+                            {inviteRole}
+                          </span>
+                        </>
+                      ) : (
+                        'Share this single-use 48h invite link with your teammate:'
+                      )}
                     </p>
                   </div>
                 </div>
 
                 {!inviteEmailSent && (
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono break-all select-all text-slate-800">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] font-mono break-all select-all text-slate-700">
                     {generatedInviteLink}
                   </div>
                 )}
 
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2.5 pt-1">
                   <button
                     onClick={() => copyToClipboard(generatedInviteLink)}
-                    className="flex-1 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Copy className="w-4 h-4" />
-                    <span>Copy Invite Link</span>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Link</span>
                   </button>
                   {!inviteEmailSent && (
                     <a
                       href={generatedInviteLink}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                      className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
                     >
-                      <span>Test Open</span>
+                      <span>Open</span>
                       <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   )}
+                  <button
+                    onClick={() => {
+                      setIsInviteOpen(false);
+                      setGeneratedInviteLink(null);
+                      setInviteEmail('');
+                      loadMembers();
+                    }}
+                    className="flex-1 py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-sm shadow-brand-500/25 transition-all"
+                  >
+                    Done
+                  </button>
                 </div>
-
-                <button
-                  onClick={() => {
-                    setIsInviteOpen(false);
-                    setGeneratedInviteLink(null);
-                    setInviteEmail('');
-                    loadMembers();
-                  }}
-                  className="w-full text-xs text-slate-500 hover:text-slate-800 font-semibold pt-2"
-                >
-                  Done
-                </button>
               </div>
             ) : (
               <form onSubmit={handleSendInvite} className="p-5 space-y-4">
