@@ -9,7 +9,7 @@ import { useBoardStore } from '../../store/boardStore';
 import { Loader2 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
-  const { user, token, activeWorkspace, isLoading, initAuth } = useAuthStore();
+  const { user, token, activeWorkspace, workspaces, isLoading, initAuth, switchWorkspace } = useAuthStore();
   const { fetchProjects } = useBoardStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,6 +28,16 @@ export const Layout: React.FC = () => {
   }, [isLoading, token, navigate]);
 
   useEffect(() => {
+    if (!isLoading && user && !activeWorkspace && location.pathname !== '/workspaces') {
+      if (workspaces.length > 0) {
+        switchWorkspace(workspaces[0]._id);
+      } else {
+        navigate('/workspaces');
+      }
+    }
+  }, [isLoading, user, activeWorkspace, workspaces, location.pathname, navigate, switchWorkspace]);
+
+  useEffect(() => {
     if (activeWorkspace) {
       fetchProjects();
     }
@@ -40,11 +50,6 @@ export const Layout: React.FC = () => {
         <p className="text-xs font-semibold text-slate-500">Loading workspace context...</p>
       </div>
     );
-  }
-
-  // If user has no active workspace, prompt to create or select one
-  if (user && !activeWorkspace && location.pathname !== '/workspaces') {
-    navigate('/workspaces');
   }
 
   return (

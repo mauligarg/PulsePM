@@ -65,21 +65,25 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Check if user belongs to any active workspace
-    const membership = await Membership.findOne({
+    // Check if user belongs to any active workspace (skip orphaned memberships where workspace was deleted)
+    const memberships = await Membership.find({
       userId: user._id,
       status: 'active'
-    }).populate('workspaceId');
+    })
+      .populate('workspaceId')
+      .sort({ createdAt: 1 });
+
+    const validMembership = memberships.find((m) => m.workspaceId !== null);
 
     let tokenPayload = { userId: user._id };
     let activeWorkspace = null;
     let role = null;
 
-    if (membership && membership.workspaceId) {
-      tokenPayload.workspaceId = membership.workspaceId._id;
-      tokenPayload.role = membership.role;
-      activeWorkspace = membership.workspaceId;
-      role = membership.role;
+    if (validMembership) {
+      tokenPayload.workspaceId = validMembership.workspaceId._id;
+      tokenPayload.role = validMembership.role;
+      activeWorkspace = validMembership.workspaceId;
+      role = validMembership.role;
     }
 
     const token = signToken(tokenPayload);
@@ -110,6 +114,20 @@ const getMe = async (req, res, next) => {
 
     if (req.workspaceId) {
       activeWorkspace = await Workspace.findById(req.workspaceId);
+    }
+
+    if (!activeWorkspace) {
+      const memberships = await Membership.find({
+        userId: req.user._id,
+        status: 'active'
+      })
+        .populate('workspaceId')
+        .sort({ createdAt: 1 });
+      const fallback = memberships.find((m) => m.workspaceId !== null);
+      if (fallback) {
+        activeWorkspace = fallback.workspaceId;
+        role = fallback.role;
+      }
     }
 
     // Get count of workspaces user belongs to

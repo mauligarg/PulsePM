@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Plus, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToast } from '../components/common/Toast';
 
 export const WorkspaceSelect: React.FC = () => {
-  const { workspaces, switchWorkspace, createWorkspace, user } = useAuthStore();
+  const { workspaces, switchWorkspace, createWorkspace, user, initAuth, fetchWorkspaces } = useAuthStore();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      initAuth();
+    } else if (workspaces.length === 0) {
+      fetchWorkspaces();
+    }
+  }, []);
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');

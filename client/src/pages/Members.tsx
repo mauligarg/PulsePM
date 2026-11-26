@@ -315,15 +315,17 @@ export const Members: React.FC = () => {
                     </h4>
                     <p className="text-xs text-emerald-700 mt-1">
                       {inviteEmailSent
-                        ? 'An email was delivered. You can also copy the single-use invite link below:'
+                        ? `An invitation email was delivered to ${inviteEmail}.`
                         : 'Copy and share the single-use 48h invite link below:'}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono break-all select-all text-slate-800">
-                  {generatedInviteLink}
-                </div>
+                {!inviteEmailSent && (
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono break-all select-all text-slate-800">
+                    {generatedInviteLink}
+                  </div>
+                )}
 
                 <div className="flex gap-2">
                   <button
@@ -331,17 +333,19 @@ export const Members: React.FC = () => {
                     className="flex-1 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2"
                   >
                     <Copy className="w-4 h-4" />
-                    <span>Copy Link</span>
+                    <span>Copy Invite Link</span>
                   </button>
-                  <a
-                    href={generatedInviteLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    <span>Test Open</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  {!inviteEmailSent && (
+                    <a
+                      href={generatedInviteLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      <span>Test Open</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
 
                 <button
