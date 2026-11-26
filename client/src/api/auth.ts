@@ -68,4 +68,10 @@ export const authApi = {
     newPassword: string;
   }): Promise<ChangePasswordResponse> =>
     apiClient.post('/auth/change-password', data) as any,
+
+  updateProfile: (data: {
+    name: string;
+    avatar?: string;
+  }): Promise<{ success: boolean; message: string; data: { user: User } }> =>
+    apiClient.patch('/auth/profile', data) as any,
 };

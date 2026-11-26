@@ -9,6 +9,8 @@ const Sprint = require('../models/Sprint');
 const Comment = require('../models/Comment');
 const Activity = require('../models/Activity');
 const Invite = require('../models/Invite');
+const TimeLog = require('../models/TimeLog');
+const Notification = require('../models/Notification');
 const { runWithSystemContext } = require('../utils/context');
 
 async function clearDatabase() {
@@ -29,6 +31,8 @@ async function clearDatabase() {
       await Comment.deleteMany({});
       await Activity.deleteMany({});
       await Invite.deleteMany({});
+      await TimeLog.deleteMany({});
+      await Notification.deleteMany({});
     });
 
     console.log('✅ All collections have been cleared successfully!');

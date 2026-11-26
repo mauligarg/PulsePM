@@ -14,6 +14,7 @@ import { MyTasks } from './pages/MyTasks';
 import { Timesheet } from './pages/Timesheet';
 import { AuditLog } from './pages/AuditLog';
 import { Members } from './pages/Members';
+import { Profile } from './pages/Profile';
 import { AcceptInvite } from './pages/AcceptInvite';
 
 export const App: React.FC = () => {
@@ -38,6 +39,7 @@ export const App: React.FC = () => {
             <Route path="/timesheet" element={<Timesheet />} />
             <Route path="/audit" element={<AuditLog />} />
             <Route path="/members" element={<Members />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
 

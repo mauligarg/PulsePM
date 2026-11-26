@@ -313,6 +313,43 @@ const changePassword = async (req, res, next) => {
   }
 };
 
+/**
+ * Update authenticated user profile (name, avatar)
+ * PATCH /api/auth/profile
+ */
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, avatar } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    if (typeof name === 'string' && name.trim()) {
+      user.name = name.trim();
+    }
+    if (typeof avatar === 'string') {
+      user.avatar = avatar.trim();
+    }
+
+    await user.save({ validateBeforeSave: false });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: user.toJSON()
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -320,5 +357,6 @@ module.exports = {
   forgotPassword,
   verifyResetToken,
   resetPassword,
-  changePassword
+  changePassword,
+  updateProfile
 };

@@ -15,6 +15,7 @@ import {
   Sparkles,
   X,
   KeyRound,
+  User as UserIcon,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { ChangePasswordModal } from '../auth/ChangePasswordModal';
@@ -44,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ...(role === 'owner' || role === 'admin'
       ? [{ label: 'Audit Log', path: '/audit', icon: ShieldAlert }]
       : []),
+    { label: 'Profile', path: '/profile', icon: UserIcon },
   ];
 
   const roleBadgeColors: Record<string, string> = {

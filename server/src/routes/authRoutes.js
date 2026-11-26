@@ -82,6 +82,21 @@ router.post(
   authController.changePassword
 );
 
+router.patch(
+  '/profile',
+  authenticate,
+  [
+    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('avatar')
+      .optional({ values: 'falsy' })
+      .trim()
+      .isURL({ protocols: ['http', 'https'], require_protocol: true })
+      .withMessage('Avatar must be a valid http(s) URL')
+  ],
+  validate,
+  authController.updateProfile
+);
+
 router.get('/me', authenticate, authController.getMe);
 
 module.exports = router;

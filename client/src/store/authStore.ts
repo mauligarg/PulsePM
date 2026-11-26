@@ -16,6 +16,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateUser: (user: User) => void;
   fetchWorkspaces: () => Promise<void>;
   switchWorkspace: (workspaceId: string) => Promise<void>;
   createWorkspace: (name: string, slug?: string) => Promise<Workspace>;
@@ -98,6 +99,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       error: null,
     });
     window.location.href = '/login';
+  },
+
+  updateUser: (user: User) => {
+    set({ user });
   },
 
   fetchWorkspaces: async () => {
