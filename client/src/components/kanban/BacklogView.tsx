@@ -181,12 +181,16 @@ export const BacklogView: React.FC<{ onAddTask: (defaultStatus?: 'backlog' | 'to
           </span>
         )}
         {task.assigneeId && (
-          <img
-            src={task.assigneeId.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${task.assigneeId.name}`}
-            alt={task.assigneeId.name}
-            title={task.assigneeId.name}
-            className="w-6 h-6 rounded-full border border-slate-200"
-          />
+          <div className="flex items-center gap-1.5 min-w-0 max-w-[120px]" title={task.assigneeId.name}>
+            <img
+              src={task.assigneeId.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${task.assigneeId.name}`}
+              alt={task.assigneeId.name}
+              className="w-6 h-6 rounded-full border border-slate-200 shrink-0"
+            />
+            <span className="hidden sm:inline text-[11px] font-medium text-slate-600 truncate">
+              {task.assigneeId.name}
+            </span>
+          </div>
         )}
         {!isGuest && (
           <select

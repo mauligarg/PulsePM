@@ -175,6 +175,15 @@ const getTaskById = async (req, res, next) => {
 };
 
 /**
+ * Members can only modify or move tasks assigned to them (or unassigned tasks).
+ */
+const canModifyTask = (task, req) => {
+  if (req.role !== 'member') return true;
+  if (!task.assigneeId) return true;
+  return String(task.assigneeId) === String(req.user._id);
+};
+
+/**
  * Update task fields
  * PATCH /api/tasks/:id
  */
@@ -188,6 +197,13 @@ const updateTask = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
+      });
+    }
+
+    if (!canModifyTask(task, req)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Members can only edit tasks assigned to them'
       });
     }
 
@@ -270,6 +286,13 @@ const moveTask = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Task not found'
+      });
+    }
+
+    if (!canModifyTask(task, req)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Members can only move tasks assigned to them'
       });
     }
 

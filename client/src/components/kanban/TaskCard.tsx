@@ -121,23 +121,33 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onClick, isOverlay }) 
           )}
         </div>
 
-        {/* Assignee Avatar */}
+        {/* Assignee Avatar + Name */}
         {task.assigneeId ? (
-          <img
-            src={
-              task.assigneeId.avatar ||
-              `https://api.dicebear.com/7.x/avataaars/svg?seed=${task.assigneeId.name}`
-            }
-            alt={task.assigneeId.name}
+          <div
+            className="flex items-center gap-1.5 min-w-0 max-w-[135px]"
             title={`Assigned to ${task.assigneeId.name}`}
-            className="w-5 h-5 rounded-full border border-slate-200 bg-slate-100 object-cover shrink-0"
-          />
+          >
+            <img
+              src={
+                task.assigneeId.avatar ||
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${task.assigneeId.name}`
+              }
+              alt={task.assigneeId.name}
+              className="w-5 h-5 rounded-full border border-slate-200 bg-slate-100 object-cover shrink-0"
+            />
+            <span className="text-[11px] font-medium text-slate-600 truncate">
+              {task.assigneeId.name}
+            </span>
+          </div>
         ) : (
           <div
-            className="w-5 h-5 rounded-full border border-dashed border-slate-300 text-[10px] text-slate-400 flex items-center justify-center shrink-0"
+            className="flex items-center gap-1.5 shrink-0"
             title="Unassigned"
           >
-            ?
+            <div className="w-5 h-5 rounded-full border border-dashed border-slate-300 text-[10px] text-slate-400 flex items-center justify-center">
+              ?
+            </div>
+            <span className="text-[10px] text-slate-400">Unassigned</span>
           </div>
         )}
       </div>

@@ -64,6 +64,11 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
   const [taskHistory, setTaskHistory] = useState<Activity[]>([]);
 
   const isGuest = role === 'guest';
+  const isOtherMemberTask =
+    role === 'member' &&
+    Boolean(task?.assigneeId?._id) &&
+    task?.assigneeId?._id !== user?._id;
+  const isReadOnlyTask = isGuest || isOtherMemberTask;
   const canDelete = role === 'owner' || role === 'admin';
 
   useEffect(() => {
@@ -111,7 +116,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
   if (!isOpen) return null;
 
   const handleSaveField = async (fieldUpdates: Partial<Task>) => {
-    if (isGuest) return;
+    if (isReadOnlyTask) return;
 
     try {
       setIsSaving(true);
@@ -454,11 +459,16 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
+            {isOtherMemberTask && (
+              <div className="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] font-medium text-amber-800">
+                Assigned to <strong>{task.assigneeId?.name}</strong> — members can view and comment, but only the assignee or an admin/owner can edit task details.
+              </div>
+            )}
             {/* Title (Inline editable) */}
             <div>
               <input
                 type="text"
-                disabled={isGuest}
+                disabled={isReadOnlyTask}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={() => handleSaveField({ title })}
@@ -472,7 +482,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
               <div>
                 <label className="text-[11px] font-semibold text-slate-500 block mb-1">Status</label>
                 <select
-                  disabled={isGuest}
+                  disabled={isReadOnlyTask}
                   value={status}
                   onChange={(e) => {
                     const val = e.target.value as TaskStatus;
@@ -493,7 +503,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
               <div>
                 <label className="text-[11px] font-semibold text-slate-500 block mb-1">Priority</label>
                 <select
-                  disabled={isGuest}
+                  disabled={isReadOnlyTask}
                   value={priority}
                   onChange={(e) => {
                     const val = e.target.value as TaskPriority;
@@ -513,7 +523,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
               <div>
                 <label className="text-[11px] font-semibold text-slate-500 block mb-1">Assignee</label>
                 <select
-                  disabled={isGuest}
+                  disabled={isReadOnlyTask}
                   value={assigneeId}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -536,7 +546,7 @@ export const TaskDrawer: React.FC<TaskDrawerProps> = ({ taskId, isOpen, onClose 
                 <label className="text-[11px] font-semibold text-slate-500 block mb-1">Due Date</label>
                 <input
                   type="date"
-                  disabled={isGuest}
+                  disabled={isReadOnlyTask}
                   value={dueDate}
                   onChange={(e) => {
                     setDueDate(e.target.value);

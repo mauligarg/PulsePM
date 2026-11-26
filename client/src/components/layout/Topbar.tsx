@@ -3,7 +3,6 @@ import { Search, Plus, FolderKanban, Bell, CheckCheck, Menu, X } from 'lucide-re
 import { useAuthStore } from '../../store/authStore';
 import { useBoardStore } from '../../store/boardStore';
 import { useNotificationStore } from '../../store/notificationStore';
-import { useSocket } from '../../hooks/useSocket';
 
 interface TopbarProps {
   onNewTask?: () => void;
@@ -15,7 +14,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onNewTask, onMenuClick }) => {
   const { projects, currentProject, setCurrentProject, searchQuery, setSearchQuery } = useBoardStore();
   const { notifications, unreadCount, fetchNotifications, markAsRead, markAllAsRead } =
     useNotificationStore();
-  const { isConnected } = useSocket();
   const [showNotifs, setShowNotifs] = useState(false);
   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
@@ -100,7 +98,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onNewTask, onMenuClick }) => {
           </button>
 
           {/* Socket live status */}
-          <div
+          {/* <div
             title={isConnected ? 'Real-time WebSocket connected' : 'Connecting to real-time events...'}
             className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 sm:py-1 rounded-full text-xs font-medium border transition-colors ${
               isConnected
@@ -121,7 +119,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onNewTask, onMenuClick }) => {
             <span className="hidden sm:inline text-[11px]">
               {isConnected ? 'Live Sync' : 'Connecting'}
             </span>
-          </div>
+          </div> */}
 
         {/* Notifications Bell (@mentions) */}
         <div className="relative">

@@ -27,6 +27,7 @@ const COLUMNS: { id: TaskStatus; title: string }[] = [
 export const KanbanBoard: React.FC = () => {
   const { tasks, moveTask } = useBoardStore();
   const role = useAuthStore((s) => s.role);
+  const user = useAuthStore((s) => s.user);
   const { toast } = useToast();
 
   const [activeTask, setActiveTask] = useState<Task | null>(null);
@@ -41,6 +42,14 @@ export const KanbanBoard: React.FC = () => {
     })
   );
 
+  const canModifyTask = (task: Task) => {
+    if (role === 'guest') return false;
+    if (role === 'member' && task.assigneeId && task.assigneeId._id !== user?._id) {
+      return false;
+    }
+    return true;
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     if (role === 'guest') {
       toast('Guests have read-only access and cannot reorder cards', 'error');
@@ -48,6 +57,10 @@ export const KanbanBoard: React.FC = () => {
     }
 
     const task = tasks.find((t) => t._id === event.active.id);
+    if (task && !canModifyTask(task)) {
+      toast('Members can only move tasks assigned to them', 'error');
+      return;
+    }
     if (task) {
       setActiveTask(task);
     }
@@ -61,7 +74,7 @@ export const KanbanBoard: React.FC = () => {
 
     const taskId = active.id as string;
     const task = tasks.find((t) => t._id === taskId);
-    if (!task) return;
+    if (!task || !canModifyTask(task)) return;
 
     // Target status can be determined either by dropping directly on column, or dropping on another task
     let targetStatus: TaskStatus = task.status;
