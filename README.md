@@ -37,6 +37,51 @@ A full-stack, enterprise-grade **Jira/Asana-style Project Management SaaS** engi
 
 ---
 
+## 1.5. Project Folder Structure
+
+```text
+SAAS/
+├── backend/
+│   ├── config/          # db.js, env.js, redis.js
+│   ├── controllers/     # Request handlers (auth, task, project, workspace, etc.)
+│   ├── middleware/      # authenticate, authorize, rateLimit, resolveTenant, validate, error
+│   ├── models/          # Mongoose schemas (User, Workspace, Membership, Project, Task, ...)
+│   ├── plugins/         # tenantGuard.js (AsyncLocalStorage tenant isolation)
+│   ├── routes/          # Express route definitions
+│   ├── services/        # mailer.js (Brevo API), activity.js (audit logging)
+│   ├── sockets/         # Socket.io server setup
+│   ├── scripts/         # seed, clear, authResetTest, isolationTest, mailerTest
+│   ├── utils/           # password, permissions, tokens, mentions, logger, context
+│   ├── app.js
+│   ├── index.js
+│   ├── package.json
+│   └── .env.example
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/      # Static media
+│   │   ├── components/  # Reusable UI (auth, common, dashboard, kanban, layout, workspace)
+│   │   ├── hooks/       # Custom hooks (useSocket)
+│   │   ├── pages/       # Route views (Dashboard, Board, Projects, Members, Profile, ...)
+│   │   ├── services/    # Axios client & API service modules
+│   │   ├── store/       # Zustand state stores (authStore, boardStore, notificationStore)
+│   │   ├── styles/      # Global Tailwind & fluid CSS (index.css)
+│   │   ├── types/       # TypeScript domain interfaces
+│   │   ├── utils/       # Client helpers (password, time)
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── .gitignore
+├── package.json
+├── render.yaml
+└── README.md
+```
+
+---
+
 ## 2. Multi-Tenant Safety & The `tenantGuard` Plugin
 
 ### Why `workspaceId` is NEVER trusted from request body or query params
@@ -47,7 +92,7 @@ In a multi-tenant application, allowing the client to supply `?workspaceId=...` 
 
 ### Why removing `workspaceId` filter from a controller STILL CANNOT leak data
 Even if a developer writes `Task.findById(id)` or `Task.find({})` in an Express controller without filtering by `workspaceId`:
-- The custom Mongoose plugin (`server/src/plugins/tenantGuard.js`) automatically intercepts:
+- The custom Mongoose plugin (`backend/plugins/tenantGuard.js`) automatically intercepts:
   - `find`, `findOne`, `findOneAndUpdate`, `deleteOne`, `updateOne`, `countDocuments`, and `aggregate`.
 - It fetches the active `workspaceId` from `AsyncLocalStorage` and **forces `{ workspaceId: activeTenantId }` into the query filter at the MongoDB driver layer**.
 - If a query is attempted without an active workspace context, the plugin **immediately throws a runtime exception**, aborting the operation before any data can leak.
@@ -187,15 +232,15 @@ Password for all pre-seeded evaluation accounts: `password123`
 
 | Variable | Location | Description |
 | :--- | :--- | :--- |
-| `PORT` | `server/.env` | API port (default `5000`) |
-| `MONGO_URI` | `server/.env` | MongoDB Atlas URI (empty = local `mongodb-memory-server`) |
-| `JWT_SECRET` | `server/.env` | Signing secret (use distinct values for staging vs prod) |
-| `CLIENT_URL` | `server/.env` | Allowed CORS origin (e.g. `https://app.vercel.app`) |
-| `REDIS_URL` | `server/.env` | Upstash Redis `rediss://` URL (empty = in-memory fallback) |
-| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | `server/.env` | Cloudinary upload credentials (empty = local `/uploads` fallback) |
-| `BREVO_API_KEY` / `EMAIL_FROM` | `server/.env` | Brevo HTTPS email API key & verified sender email (works on Render Free tier) |
-| `SENTRY_DSN` / `LOG_LEVEL` | `server/.env` | Sentry DSN & Pino log level |
-| `VITE_API_URL` / `VITE_SOCKET_URL` / `VITE_SENTRY_DSN` | `client/.env` | Frontend API, WebSocket & Sentry endpoints |
+| `PORT` | `backend/.env` | API port (default `5000`) |
+| `MONGO_URI` | `backend/.env` | MongoDB Atlas URI (empty = local `mongodb-memory-server`) |
+| `JWT_SECRET` | `backend/.env` | Signing secret (use distinct values for staging vs prod) |
+| `CLIENT_URL` | `backend/.env` | Allowed CORS origin (e.g. `https://app.vercel.app`) |
+| `REDIS_URL` | `backend/.env` | Upstash Redis `rediss://` URL (empty = in-memory fallback) |
+| `CLOUDINARY_CLOUD_NAME` / `API_KEY` / `API_SECRET` | `backend/.env` | Cloudinary upload credentials (empty = local `/uploads` fallback) |
+| `BREVO_API_KEY` / `EMAIL_FROM` | `backend/.env` | Brevo HTTPS email API key & verified sender email (works on Render Free tier) |
+| `SENTRY_DSN` / `LOG_LEVEL` | `backend/.env` | Sentry DSN & Pino log level |
+| `VITE_API_URL` / `VITE_SOCKET_URL` / `VITE_SENTRY_DSN` | `frontend/.env` | Frontend API, WebSocket & Sentry endpoints |
 
 ---
 
@@ -218,6 +263,6 @@ Password for all pre-seeded evaluation accounts: `password123`
 
 ## 10. Assumptions Made
 1. **Fallback Database:** If `MONGO_URI` is not provided in `.env`, the system automatically spins up `mongodb-memory-server` for instantaneous evaluation without external database configuration.
-2. **Email, Redis & Cloudinary Fallbacks:** If `SMTP_*`, `REDIS_URL`, or `CLOUDINARY_*` are omitted in local dev, invite links are returned in `devInviteLink`, Redis falls back to in-memory adapter/cache, and file uploads fall back to `server/uploads/`.
+2. **Email, Redis & Cloudinary Fallbacks:** If `BREVO_API_KEY`, `REDIS_URL`, or `CLOUDINARY_*` are omitted in local dev, invite links are returned in `devInviteLink`, Redis falls back to in-memory adapter/cache, and file uploads fall back to `backend/uploads/`.
 3. **Task Deletion:** Deleting a parent task cascades to delete its subtasks and associated comments to prevent orphaned database records.
 4. **Sprint Scope:** Only one sprint per project can be `active` at a time; completing a sprint moves unfinished tasks either back to the Backlog (`sprintId: null`) or to another planned sprint.
