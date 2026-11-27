@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   KanbanSquare,
   ListFilter,
-  Plus,DJDJ
+  Plus,
   Loader2,
 } from 'lucide-react';
 import { KanbanBoard } from '../components/kanban/KanbanBoard';
