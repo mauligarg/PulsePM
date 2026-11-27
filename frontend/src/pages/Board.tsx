@@ -39,7 +39,7 @@ export const Board: React.FC = () => {
     }
   }, [activeWorkspace?._id]);
 
-  if (!currentProject) {HH
+  if (!currentProject) {
     return (
       <div className="h-96 flex flex-col items-center justify-center text-center p-6 bg-white rounded-2xl border border-slate-200">
         <KanbanSquare className="w-12 h-12 text-slate-300 mb-3" />
