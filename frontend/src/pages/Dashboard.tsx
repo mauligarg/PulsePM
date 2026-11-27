@@ -11,8 +11,6 @@ import {
 import { Link } from 'react-router-dom';
 import { StatCard } from '../components/dashboard/StatCard';
 import { StatusChart } from '../components/dashboard/StatusChart';
-import { BurndownChart } from '../components/dashboard/BurndownChart';
-import { VelocityChart } from '../components/dashboard/VelocityChart';
 import { WorkloadChart } from '../components/dashboard/WorkloadChart';
 import { ActivityFeed } from '../components/dashboard/ActivityFeed';
 import { TaskDrawer } from '../components/kanban/TaskDrawer';
@@ -23,8 +21,6 @@ import { useAuthStore } from '../store/authStore';
 export const Dashboard: React.FC = () => {
   const { activeWorkspace, user } = useAuthStore();
   const [data, setData] = useState<DashboardSummary | null>(null);
-  const [burndown, setBurndown] = useState<any>(null);
-  const [velocity, setVelocity] = useState<any[]>([]);
   const [workload, setWorkload] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -32,15 +28,11 @@ export const Dashboard: React.FC = () => {
   const fetchSummary = async () => {
     try {
       setIsLoading(true);
-      const [sumRes, burnRes, velRes, workRes] = await Promise.all([
+      const [sumRes, workRes] = await Promise.all([
         dashboardApi.getSummary(),
-        dashboardApi.getBurndown().catch(() => ({ data: null })),
-        dashboardApi.getVelocity().catch(() => ({ data: [] })),
         dashboardApi.getWorkload().catch(() => ({ data: [] })),
       ]);
       setData(sumRes.data);
-      setBurndown(burnRes.data);
-      setVelocity(velRes.data || []);
       setWorkload(workRes.data || []);
     } catch (err: any) {
       console.error('Error fetching dashboard summary:', err.message);
@@ -143,17 +135,9 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Row 2.5: Agile Aggregation Reports (Burndown, Velocity, Workload) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-        <div className="min-w-0">
-          <BurndownChart data={burndown} />
-        </div>
-        <div className="min-w-0">
-          <VelocityChart data={velocity} />
-        </div>
-        <div className="min-w-0 md:col-span-2 xl:col-span-1">
-          <WorkloadChart data={workload} />
-        </div>
+      {/* Row 2.5: Team Workload Distribution */}
+      <div className="min-w-0">
+        <WorkloadChart data={workload} />
       </div>
 
       {/* Row 3: Actionable Lists (Overdue Tasks & My Open Tasks) */}
