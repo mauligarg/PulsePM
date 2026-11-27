@@ -20,6 +20,7 @@ interface AuthState {
   fetchWorkspaces: () => Promise<void>;
   switchWorkspace: (workspaceId: string) => Promise<void>;
   createWorkspace: (name: string, slug?: string) => Promise<Workspace>;
+  deleteWorkspace: (workspaceId: string) => Promise<{ hasNextWorkspace: boolean }>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -156,6 +157,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       await get().fetchWorkspaces();
       return workspace;
+    } catch (err: any) {
+      set({ error: err.message, isLoading: false });
+      throw err;
+    }
+  },
+
+  deleteWorkspace: async (workspaceId: string) => {
+    set({ isLoading: true });
+    try {
+      const res = await workspaceApi.delete(workspaceId);
+      const { nextWorkspace, nextRole, token } = res.data;
+
+      localStorage.setItem('token', token);
+      set({
+        token,
+        activeWorkspace: nextWorkspace,
+        role: nextRole,
+        isLoading: false,
+      });
+
+      await get().fetchWorkspaces();
+      return { hasNextWorkspace: Boolean(nextWorkspace) };
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
       throw err;

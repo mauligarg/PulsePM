@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User as UserIcon,
   Mail,
@@ -9,6 +10,9 @@ import {
   Loader2,
   Sparkles,
   Check,
+  Trash2,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../services/auth';
@@ -20,8 +24,10 @@ import { evaluatePassword } from '../utils/password';
 const AVATAR_STYLES = ['avataaars', 'lorelei', 'notionists', 'bottts', 'initials'];
 
 export const Profile: React.FC = () => {
-  const { user, activeWorkspace, role, workspaces, switchWorkspace, updateUser } = useAuthStore();
+  const { user, activeWorkspace, role, workspaces, switchWorkspace, updateUser, deleteWorkspace } =
+    useAuthStore();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Profile form
   const [name, setName] = useState(user?.name || '');
@@ -33,6 +39,11 @@ export const Profile: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
+  // Delete workspace modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [isDeletingWorkspace, setIsDeletingWorkspace] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -379,6 +390,116 @@ export const Profile: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Danger Zone: Delete Workspace (Owner Only) */}
+      {activeWorkspace && role === 'owner' && (
+        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-rose-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-rose-700 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>Delete Active Workspace</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Permanently delete <strong>{activeWorkspace.name}</strong> and all its projects, tasks, sprints, comments, and time logs. This action cannot be undone.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteConfirmName('');
+                setIsDeleteModalOpen(true);
+              }}
+              className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete Workspace</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && activeWorkspace && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">Confirm Workspace Deletion</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (deleteConfirmName.trim() !== activeWorkspace.name) return;
+                setIsDeletingWorkspace(true);
+                try {
+                  const deletedName = activeWorkspace.name;
+                  const { hasNextWorkspace } = await deleteWorkspace(activeWorkspace._id);
+                  setIsDeleteModalOpen(false);
+                  toast(`Workspace "${deletedName}" deleted`);
+                  if (!hasNextWorkspace) {
+                    navigate('/workspaces');
+                  }
+                } catch (err: any) {
+                  toast(err.message || 'Failed to delete workspace', 'error');
+                } finally {
+                  setIsDeletingWorkspace(false);
+                }
+              }}
+              className="p-4 sm:p-5 space-y-4"
+            >
+              <p className="text-xs text-slate-600 leading-relaxed">
+                This will permanently delete <strong>{activeWorkspace.name}</strong> and all data inside it. Type{' '}
+                <code className="px-1.5 py-0.5 rounded bg-slate-100 font-mono text-rose-700">
+                  {activeWorkspace.name}
+                </code>{' '}
+                to confirm:
+              </p>
+
+              <input
+                type="text"
+                required
+                value={deleteConfirmName}
+                onChange={(e) => setDeleteConfirmName(e.target.value)}
+                placeholder={activeWorkspace.name}
+                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"
+              />
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    isDeletingWorkspace || deleteConfirmName.trim() !== activeWorkspace.name
+                  }
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-sm"
+                >
+                  {isDeletingWorkspace && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Delete Permanently</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

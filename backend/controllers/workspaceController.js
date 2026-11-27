@@ -3,6 +3,13 @@ const Workspace = require('../models/Workspace');
 const Membership = require('../models/Membership');
 const Invite = require('../models/Invite');
 const User = require('../models/User');
+const Project = require('../models/Project');
+const Task = require('../models/Task');
+const Sprint = require('../models/Sprint');
+const Comment = require('../models/Comment');
+const TimeLog = require('../models/TimeLog');
+const Notification = require('../models/Notification');
+const Activity = require('../models/Activity');
 const { signToken, generateInviteToken, hashToken } = require('../utils/tokens');
 const { sendInviteEmail } = require('../services/mailer');
 const { recordActivity } = require('../services/activity');
@@ -454,6 +461,79 @@ const revokeInvite = async (req, res, next) => {
   }
 };
 
+/**
+ * Permanently delete a workspace and all its tenant-scoped data (Owner only)
+ * DELETE /api/workspaces/:id
+ */
+const deleteWorkspace = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!req.workspaceId || id !== req.workspaceId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Switch to this workspace before deleting it'
+      });
+    }
+
+    const workspace = await Workspace.findById(id);
+    if (!workspace) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workspace not found'
+      });
+    }
+
+    // Cascade delete all tenant-scoped collections
+    await Promise.all([
+      Comment.deleteMany({ workspaceId: id }),
+      TimeLog.deleteMany({ workspaceId: id }),
+      Notification.deleteMany({ workspaceId: id }),
+      Task.deleteMany({ workspaceId: id }),
+      Sprint.deleteMany({ workspaceId: id }),
+      Project.deleteMany({ workspaceId: id }),
+      Activity.deleteMany({ workspaceId: id }),
+      Invite.deleteMany({ workspaceId: id }),
+      Membership.deleteMany({ workspaceId: id })
+    ]);
+
+    await Workspace.deleteOne({ _id: id });
+
+    // Determine next available workspace for the user
+    const remainingMemberships = await Membership.find({
+      userId: req.user._id,
+      status: 'active'
+    })
+      .populate('workspaceId')
+      .sort({ createdAt: 1 });
+
+    const nextMembership = remainingMemberships.find((m) => m.workspaceId !== null);
+    let nextWorkspace = null;
+    let nextRole = null;
+    const tokenPayload = { userId: req.user._id };
+
+    if (nextMembership) {
+      nextWorkspace = nextMembership.workspaceId;
+      nextRole = nextMembership.role;
+      tokenPayload.workspaceId = nextWorkspace._id;
+      tokenPayload.role = nextRole;
+    }
+
+    const token = signToken(tokenPayload);
+
+    res.json({
+      success: true,
+      message: `Workspace "${workspace.name}" deleted successfully`,
+      data: {
+        nextWorkspace,
+        nextRole,
+        token
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createWorkspace,
   listWorkspaces,
@@ -463,5 +543,6 @@ module.exports = {
   removeMember,
   createInvite,
   listInvites,
-  revokeInvite
+  revokeInvite,
+  deleteWorkspace
 };

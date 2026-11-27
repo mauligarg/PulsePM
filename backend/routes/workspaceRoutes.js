@@ -25,6 +25,15 @@ router.get('/', authenticate, workspaceController.listWorkspaces);
 // Switch workspace context (returns new JWT token with workspace claims)
 router.post('/:id/switch', authenticate, workspaceController.switchWorkspace);
 
+// Delete workspace (Owner only)
+router.delete(
+  '/:id',
+  authenticate,
+  resolveTenant,
+  authorize('workspace:delete'),
+  workspaceController.deleteWorkspace
+);
+
 // Tenant-scoped routes (require authenticate + resolveTenant + RBAC authorization)
 router.get(
   '/:id/members',

@@ -33,4 +33,10 @@ export const workspaceApi = {
 
   revokeInvite: (workspaceId: string, inviteId: string): Promise<{ success: boolean; message: string }> =>
     apiClient.delete(`/workspaces/${workspaceId}/invites/${inviteId}`) as any,
+
+  delete: (workspaceId: string): Promise<{
+    success: boolean;
+    message: string;
+    data: { nextWorkspace: Workspace | null; nextRole: Role | null; token: string };
+  }> => apiClient.delete(`/workspaces/${workspaceId}`) as any,
 };
