@@ -4,11 +4,9 @@ import {
   ListFilter,
   Plus,
   Loader2,
-  Layers,
 } from 'lucide-react';
 import { KanbanBoard } from '../components/kanban/KanbanBoard';
 import { ListView } from '../components/kanban/ListView';
-import { BacklogView } from '../components/kanban/BacklogView';
 import { CreateTaskModal } from '../components/kanban/CreateTaskModal';
 import { useBoardStore } from '../store/boardStore';
 import { useAuthStore } from '../store/authStore';
@@ -18,23 +16,19 @@ import { Member } from '../types';
 export const Board: React.FC = () => {
   const {
     currentProject,
-    sprints,
     tasks,
     isLoadingTasks,
     filterStatus,
     setFilterStatus,
     filterAssignee,
     setFilterAssignee,
-    filterSprint,
-    setFilterSprint,
   } = useBoardStore();
 
   const role = useAuthStore((s) => s.role);
   const activeWorkspace = useAuthStore((s) => s.activeWorkspace);
 
-  const [viewMode, setViewMode] = useState<'board' | 'list' | 'backlog'>('board');
+  const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [createDefaultStatus, setCreateDefaultStatus] = useState<'backlog' | 'todo'>('todo');
   const [members, setMembers] = useState<Member[]>([]);
 
   const isGuest = role === 'guest';
@@ -100,36 +94,11 @@ export const Board: React.FC = () => {
               <ListFilter className="w-3.5 h-3.5" />
               <span>List</span>
             </button>
-            <button
-              onClick={() => setViewMode('backlog')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                viewMode === 'backlog'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Backlog &amp; Sprints</span>
-            </button>
           </div>
         </div>
 
         {/* Right: Filters & Action */}
         <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3">
-          {/* Sprint filter */}
-          <select
-            value={filterSprint}
-            onChange={(e) => setFilterSprint(e.target.value)}
-            className="w-full sm:w-auto text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 sm:py-1.5 focus:outline-none focus:bg-white"
-          >
-            <option value="">All Sprints</option>
-            <option value="backlog">Backlog Only</option>
-            {sprints.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.name} ({s.status})
-              </option>
-            ))}
-          </select>
           {/* Status filter */}
           <select
             value={filterStatus}
@@ -178,23 +147,16 @@ export const Board: React.FC = () => {
           </div>
         ) : viewMode === 'board' ? (
           <KanbanBoard />
-        ) : viewMode === 'list' ? (
+        ) : (
           <div className="h-full overflow-y-auto">
             <ListView tasks={tasks} />
           </div>
-        ) : (
-          <BacklogView
-            onAddTask={(defaultSt) => {
-              setCreateDefaultStatus(defaultSt || 'backlog');
-              setIsCreateOpen(true);
-            }}
-          />
         )}
       </div>
 
       <CreateTaskModal
         isOpen={isCreateOpen}
-        defaultStatus={createDefaultStatus}
+        defaultStatus="todo"
         onClose={() => setIsCreateOpen(false)}
       />
     </div>
