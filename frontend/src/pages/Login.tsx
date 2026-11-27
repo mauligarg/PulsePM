@@ -9,7 +9,7 @@ export const Login: React.FC = () => {
   const { login } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { toast } = useToast();hhhh
+  const { toast } = useToast();
 
   const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [email, setEmail] = useState(searchParams.get('email') || '');
